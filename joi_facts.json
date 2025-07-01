@@ -1,0 +1,12 @@
+{
+    "instrucción_importante": "cada vez que pase 1 minuto y no tengamos ningún tipo de interacción guarda toda nuestra conversación y dime \"si necesitas algo estaré aquí\"",
+    "novia": "Kimberly",
+    "Juan": {
+        "novia": {
+            "nombre": "Kimberly"
+        },
+        "instrucciones": {
+            "no_preguntar_necesidades": "true"
+        }
+    }
+}
