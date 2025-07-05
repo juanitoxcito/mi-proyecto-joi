@@ -1,1 +1,12 @@
-
+[app]
+title = JoiApp
+package.name = org.juanitoxcito.joiapp
+package.domain = org.juanitoxcito
+source.dir = .
+requirements = python3,kivy
+android.api = 27
+android.ndk = 21b
+android.sdk = 27
+android.debug = True
+android.permissions = INTERNET
+android.disable_previous_app_splash = False
