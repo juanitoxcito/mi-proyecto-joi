@@ -22,9 +22,6 @@ jobs:
       run: |
         pip install buildozer
 
-    - name: Allow execution of buildozer
-      run: chmod +x ~/.local/bin/buildozer
-
     - name: Build Android APK
       run: |
         buildozer android debug # Esto usará las configuraciones de tu buildozer.spec
