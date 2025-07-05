@@ -1,0 +1,40 @@
+name: Build Kivy Android App
+
+on:
+  push:
+    branches:
+      - main # O la rama principal de tu repositorio, si no es 'main'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9' # Usamos 3.9 por compatibilidad con Kivy/Buildozer
+
+    - name: Install Buildozer
+      run: |
+        pip install buildozer
+
+    - name: Allow execution of buildozer
+      run: chmod +x ~/.local/bin/buildozer
+
+    - name: Build Android APK
+      run: |
+        buildozer android debug # Esto usará las configuraciones de tu buildozer.spec
+      env:
+        # Puedes establecer variables de entorno si es necesario, por ejemplo:
+        # ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+        # ANDROID_NDK_HOME: /usr/local/lib/android/ndk
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: JoiApp-APK
+        path: bin/*.apk # Ubicación donde Buildozer guarda el APK
