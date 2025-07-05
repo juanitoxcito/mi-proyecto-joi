@@ -24,7 +24,7 @@ jobs:
 
     - name: Build Android APK
       run: |
-        buildozer android debug # Esto usará las configuraciones de tu buildozer.spec
+        python3 -m buildozer android debug # Esto usará las configuraciones de tu buildozer.spec
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
