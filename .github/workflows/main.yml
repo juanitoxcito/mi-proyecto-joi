@@ -25,7 +25,7 @@ jobs:
 
     - name: Build Android APK
       run: |
-        buildozer android debug # Esto usará las configuraciones de tu buildozer.spec
+        python -m buildozer android debug # Esto usará las configuraciones de tu buildozer.spec
       # Hemos eliminado la sección 'env' por ahora para simplificar y evitar el error de sintaxis
 
     - name: Upload APK artifact
