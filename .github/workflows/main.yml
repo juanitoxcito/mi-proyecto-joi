@@ -21,6 +21,7 @@ jobs:
     - name: Install Buildozer
       run: |
         pip install buildozer
+        pip install setuptools # Añadimos esto para el error 'distutils'
 
     - name: Allow execution of buildozer
       run: chmod +x ~/.local/bin/buildozer
