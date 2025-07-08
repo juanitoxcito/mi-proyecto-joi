@@ -15,7 +15,7 @@ source.dir = .
 version = 0.1
 
 # (list) Application requirements
-requirements = python3,kivy,cython
+requirements = python3,kivy,cython,aidl
 
 # (str) The category of the app.
 # choose from: 'games', 'communication', 'education', 'social', 'travel', 'design'
