@@ -17,6 +17,7 @@ jobs:
       run: |
         pip install buildozer
         pip install setuptools
+        pip install cython
 
     - name: List files in repository # Este es el paso que añadimos
       run: ls -la
