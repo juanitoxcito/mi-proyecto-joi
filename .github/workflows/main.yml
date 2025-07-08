@@ -18,6 +18,9 @@ jobs:
         pip install buildozer
         pip install setuptools
 
+        - name: List files in repository
+      run: ls -la
+
     - name: Build Android APK
       run: python -m buildozer android debug
       
