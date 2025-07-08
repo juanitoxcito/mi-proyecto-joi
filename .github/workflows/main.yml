@@ -22,14 +22,10 @@ jobs:
       run: |
         pip install buildozer
         pip install setuptools # Añadimos esto para el error 'distutils'
-        
-- name: List files in repository
+
+    - name: List files in repository # Paso temporal para depurar
       run: ls -la
 
-    - name: Build Android APK
-      run: |
-        python -m buildozer android debug # Esto usará las configuraciones de tu buildozer.spec
-      # Hemos eliminado la sección 'env' por ahora para simplificar y evitar el error de sintaxis
     - name: Build Android APK
       run: |
         python -m buildozer android debug # Esto usará las configuraciones de tu buildozer.spec
@@ -40,4 +36,3 @@ jobs:
       with:
         name: JoiApp-APK
         path: bin/*.apk # Ubicación donde Buildozer guarda el APK
-        # test
