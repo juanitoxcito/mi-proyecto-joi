@@ -22,7 +22,14 @@ jobs:
       run: |
         pip install buildozer
         pip install setuptools # Añadimos esto para el error 'distutils'
+        
+- name: List files in repository
+      run: ls -la
 
+    - name: Build Android APK
+      run: |
+        python -m buildozer android debug # Esto usará las configuraciones de tu buildozer.spec
+      # Hemos eliminado la sección 'env' por ahora para simplificar y evitar el error de sintaxis
     - name: Build Android APK
       run: |
         python -m buildozer android debug # Esto usará las configuraciones de tu buildozer.spec
