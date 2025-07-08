@@ -33,3 +33,4 @@ jobs:
       with:
         name: JoiApp-APK
         path: bin/*.apk # Ubicación donde Buildozer guarda el APK
+        # test
