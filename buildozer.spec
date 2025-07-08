@@ -27,13 +27,13 @@ requirements = python3,kivy,cython,aidl
 android.permissions = INTERNET
 
 # (int) Android API target level (e.g. 27, 28, 29). Will default to 27 if not set.
-# android.api = 27
+ android.api = 27
 
 # (int) Minimum API required to run the app (e.g. 19 or 21). Will default to 21 if not set.
-# android.minapi = 21
+ android.minapi = 21
 
 # (int) Android SDK version to use
-# android.sdk = 27
+ android.sdk = 27
 
 # (str) Android NDK version to use
 # android.ndk = 21b
