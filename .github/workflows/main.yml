@@ -13,7 +13,15 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Install dependencies
+     - name: Set up Android SDK # <-- ¡NUEVO PASO!
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 30
+        build-tools: 30.0.3 # Versión específica de build-tools
+        ndk: 21.0.6113669 # Versión específica de NDK
+        cmake: 3.10.2 # Versión específica de CMake
+        
+     - name: Install dependencies
       run: |
         pip install buildozer
         pip install setuptools
