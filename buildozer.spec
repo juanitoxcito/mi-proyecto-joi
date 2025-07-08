@@ -9,6 +9,8 @@ package.name = org.yourpackage.myapp
 # (str) Package domain (needed for android/ios packaging)
 package.domain = org.yourpackage
 
+source.dir = .
+
 # (str) Application version
 version = 0.1
 
