@@ -18,7 +18,7 @@ jobs:
         pip install buildozer
         pip install setuptools
 
-        - name: List files in repository
+    - name: List files in repository # Este es el paso que añadimos
       run: ls -la
 
     - name: Build Android APK
