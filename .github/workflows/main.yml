@@ -1,38 +1,28 @@
-name: Build Kivy Android App
+name: Android CI
 
-on:
-  push:
-    branches:
-      - main # O la rama principal de tu repositorio, si no es 'main'
+on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
+    - uses: actions/checkout@v4
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.9' # Usamos 3.9 por compatibilidad con Kivy/Buildozer
+        python-version: '3.9'
 
-    - name: Install Buildozer
+    - name: Install dependencies
       run: |
         pip install buildozer
-        pip install setuptools # Añadimos esto para el error 'distutils'
-
-    - name: List files in repository # Paso temporal para depurar
-      run: ls -la
+        pip install setuptools
 
     - name: Build Android APK
-      run: |
-        python -m buildozer android debug # Esto usará las configuraciones de tu buildozer.spec
-      # Hemos eliminado la sección 'env' por ahora para simplificar y evitar el error de sintaxis
-
-    - name: Upload APK artifact
+      run: python -m buildozer android debug
+      
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: JoiApp-APK
-        path: bin/*.apk # Ubicación donde Buildozer guarda el APK
+        name: android-app
+        path: bin/*.apk
