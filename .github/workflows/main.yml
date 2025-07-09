@@ -39,18 +39,20 @@ jobs:
     - name: Download and Setup Apache Ant
       run: |
         ANT_VERSION=1.9.4
-        ANT_FILE=apache-ant-${ANT_VERSION}-bin.tar.gz
+        ANT_FILE=apache-ant-${ANT_VERSION}-bin.zip # ¡CAMBIO: Ahora es .zip!
         ANT_URL=https://dlcdn.apache.org/ant/binaries/${ANT_FILE}
         ANT_PATH=${{ github.workspace }}/.buildozer/ant # Ruta relativa a la raíz del repositorio
         
         echo "Downloading Apache Ant from ${ANT_URL}..."
         mkdir -p "${ANT_PATH}"
-        curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36" -o "${ANT_PATH}/${ANT_FILE}" ${ANT_URL} # ¡Línea de curl modificada!
+        curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36" -o "${ANT_PATH}/${ANT_FILE}" ${ANT_URL}
         
         echo "Extracting Apache Ant..."
-        tar -xzf "${ANT_PATH}/${ANT_FILE}" -C "${ANT_PATH}" --strip-components=1
+        unzip -q "${ANT_PATH}/${ANT_FILE}" -d "${ANT_PATH}" # ¡CAMBIO: Usamos unzip!
+        mv "${ANT_PATH}/apache-ant-${ANT_VERSION}/"* "${ANT_PATH}/" || true # Mueve contenido al directorio correcto
+        rmdir "${ANT_PATH}/apache-ant-${ANT_VERSION}" || true # Elimina el directorio vacío
         
-        # Limpia el archivo .tar.gz después de la extracción (opcional pero buena práctica)
+        # Limpia el archivo .zip después de la extracción (opcional pero buena práctica)
         rm "${ANT_PATH}/${ANT_FILE}"
 
     - name: Build Android APK
