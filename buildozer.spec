@@ -12,7 +12,7 @@ package.domain = org.test
 version = 0.1
 
 # (list) Requirements (usually python3, kivy and kivy-examples)
-requirements = python3,kivy,cython,aidl
+requirements = python3,kivy,cython
 
 # (str) Kivy version to use
 # The default is a stable release, to use a nightly, specify the commit hash or `master`
