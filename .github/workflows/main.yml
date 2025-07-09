@@ -40,12 +40,12 @@ jobs:
       run: |
         ANT_VERSION=1.9.4
         ANT_FILE=apache-ant-${ANT_VERSION}-bin.tar.gz
-        ANT_URL=https://dlcdn.apache.org/ant/binaries/${ANT_FILE} # ¡URL MODIFICADA AQUÍ!
+        ANT_URL=https://dlcdn.apache.org/ant/binaries/${ANT_FILE}
         ANT_PATH=${{ github.workspace }}/.buildozer/ant # Ruta relativa a la raíz del repositorio
         
         echo "Downloading Apache Ant from ${ANT_URL}..."
         mkdir -p "${ANT_PATH}"
-        curl -L -o "${ANT_PATH}/${ANT_FILE}" ${ANT_URL}
+        curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36" -o "${ANT_PATH}/${ANT_FILE}" ${ANT_URL} # ¡Línea de curl modificada!
         
         echo "Extracting Apache Ant..."
         tar -xzf "${ANT_PATH}/${ANT_FILE}" -C "${ANT_PATH}" --strip-components=1
