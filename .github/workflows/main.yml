@@ -40,7 +40,7 @@ jobs:
       run: |
         ANT_VERSION=1.9.4
         ANT_FILE=apache-ant-${ANT_VERSION}-bin.tar.gz
-        ANT_URL=https://archive.apache.org/dist/ant/binaries/${ANT_FILE}
+        ANT_URL=https://dlcdn.apache.org/ant/binaries/${ANT_FILE} # ¡URL MODIFICADA AQUÍ!
         ANT_PATH=${{ github.workspace }}/.buildozer/ant # Ruta relativa a la raíz del repositorio
         
         echo "Downloading Apache Ant from ${ANT_URL}..."
