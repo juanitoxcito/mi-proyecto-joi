@@ -26,7 +26,7 @@ jobs:
     - name: Set up Android SDK
       uses: android-actions/setup-android@v3
       with:
-        api-level: 29
+        api-level: 28 # ¡CAMBIO A API 28 para mayor compatibilidad!
         build-tools: 30.0.3
         ndk: 21.4.7075529 # ¡CAMBIO A NDK 21b, muy compatible!
 
