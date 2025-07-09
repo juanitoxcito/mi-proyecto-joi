@@ -40,7 +40,7 @@ source.exclude_dirs = tests, bin
 android.api = 29
 
 # (str) Minimum Android SDK version to support
-android.minapi = 21
+android.minapi = 26
 
 # (str) Android NDK version to use
 android.ndk = 25b
