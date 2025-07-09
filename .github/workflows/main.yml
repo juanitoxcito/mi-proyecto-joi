@@ -55,6 +55,11 @@ jobs:
         # Limpia el archivo .zip después de la extracción (opcional pero buena práctica)
         rm "${ANT_PATH}/${ANT_FILE}"
 
+    # Nuevo paso para asegurar las macros de libtool
+    - name: Configure Libtool Macros
+      run: |
+        libtoolize --automake --copy --force || true
+        
     - name: Build Android APK
       run: |
         python -m buildozer android debug
