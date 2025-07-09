@@ -45,6 +45,9 @@ android.minapi = 26
 # (str) Android NDK version to use
 android.ndk = 26b
 
+# (list) Android architectures to build for (e.g. 'arm64-v8a', 'armeabi-v7a')
+android.archs = arm64-v8a
+
 # (str) Android SDK location (if not set, buildozer will try to download it)
 # android.sdk = 27
 
