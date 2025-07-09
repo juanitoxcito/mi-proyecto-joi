@@ -28,13 +28,13 @@ jobs:
       with:
         api-level: 28 # ¡CAMBIO A API 28 para mayor compatibilidad!
         build-tools: 30.0.3
-        ndk: 21.4.7075529 # ¡CAMBIO A NDK 21b, muy compatible!
+        ndk: 21.4.7075529 # NDK 21b
 
     - name: Install dependencies
       run: |
-        pip install buildozer
+        pip install cython # Aseguramos cython primero
+        pip install buildozer==1.4.0 # ¡Fijamos la versión de Buildozer!
         pip install setuptools
-        pip install cython
 
     - name: Download and Setup Apache Ant
       run: |
