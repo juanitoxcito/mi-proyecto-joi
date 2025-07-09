@@ -1,6 +1,10 @@
 name: Android CI
 
-on: [push]
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -8,38 +12,47 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.9'
 
-    - name: Set up Android SDK
-      uses: android-actions/setup-android@v3
-      with:
-        api-level: 30
-        build-tools: 30.0.3
-        ndk: 21.0.6113669
-        cmake: 3.10.2
-        
-    - name: Install build tools for Autoreconf # <-- ¡NUEVO PASO!
+    - name: Install build tools for Autoreconf
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential autoconf m4 libtool automake
-        
+
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 29
+        build-tools: 30.0.3
+        ndk: 25.1.8937393 # Corresponde a NDK 25b
+
     - name: Install dependencies
       run: |
         pip install buildozer
         pip install setuptools
         pip install cython
 
-    - name: List files in repository
-      run: ls -la
+    - name: Download and Setup Apache Ant
+      run: |
+        ANT_VERSION=1.9.4
+        ANT_FILE=apache-ant-${ANT_VERSION}-bin.tar.gz
+        ANT_URL=https://archive.apache.org/dist/ant/binaries/${ANT_FILE}
+        ANT_PATH=${{ github.workspace }}/.buildozer/ant # Ruta relativa a la raíz del repositorio
+        
+        echo "Downloading Apache Ant from ${ANT_URL}..."
+        mkdir -p "${ANT_PATH}"
+        curl -L -o "${ANT_PATH}/${ANT_FILE}" ${ANT_URL}
+        
+        echo "Extracting Apache Ant..."
+        tar -xzf "${ANT_PATH}/${ANT_FILE}" -C "${ANT_PATH}" --strip-components=1
+        
+        # Limpia el archivo .tar.gz después de la extracción (opcional pero buena práctica)
+        rm "${ANT_PATH}/${ANT_FILE}"
 
     - name: Build Android APK
-      run: python -m buildozer android debug
-      
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: android-app
-        path: bin/*.apk
+      run: |
+        python -m buildozer android debug
