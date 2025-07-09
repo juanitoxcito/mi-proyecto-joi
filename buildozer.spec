@@ -43,10 +43,10 @@ android.api = 29
 android.minapi = 28
 
 # (str) Android NDK version to use
-android.ndk = 26b
+android.ndk = 25b
 
-# (list) Android architectures to build for (e.g. 'arm64-v8a', 'armeabi-v7a')
-android.archs = arm64-v8a
+# (str) Android NDK location (if not set, buildozer will try to download it)
+# android.ndk_path =
 
 # (str) Android SDK location (if not set, buildozer will try to download it)
 # android.sdk = 27
@@ -77,7 +77,13 @@ verbose = False
 # android.target_sdk_version = 27
 
 # (str) The default value for the Android build tools version.
-# android.build_tools = 29.0.3
+# android.build_tools = 30.0.3 # Mantener en 30.0.3, es compatible con API 29
 
 # (str) The default value for the Android SDK tools version.
 # android.sdk_tools = 26.1.1
+
+# (list) Android architectures to build for (e.g. 'arm64-v8a', 'armeabi-v7a')
+android.archs = arm64-v8a
+
+# (str) Path to local Ant installation
+android.ant_path = .buildozer/ant
