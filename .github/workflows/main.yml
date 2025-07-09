@@ -21,7 +21,7 @@ jobs:
     - name: Install build tools for Autoreconf
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential autoconf m4 libtool automake unzip # Añadimos unzip aquí
+        sudo apt-get install -y build-essential autoconf m4 libtool automake unzip libtool-bin autoconf-archive # Paquetes actualizados
 
     - name: Set up Android SDK
       uses: android-actions/setup-android@v3
@@ -38,9 +38,9 @@ jobs:
 
     - name: Download and Setup Apache Ant
       run: |
-        ANT_VERSION=1.10.15 # ¡CAMBIO DE VERSIÓN DE ANT!
+        ANT_VERSION=1.10.15 # ¡VERSION DE ANT ACTUALIZADA!
         ANT_FILE=apache-ant-${ANT_VERSION}-bin.zip
-        ANT_URL=https://github.com/juanitoxcito/mi-proyecto-joi/releases/download/ant-files/${ANT_FILE} # ¡TU NUEVA URL!
+        ANT_URL=https://github.com/juanitoxcito/mi-proyecto-joi/releases/download/ant-files/${ANT_FILE} # ¡TU NUEVA URL DE GITHUB RELEASE!
         ANT_PATH=${{ github.workspace }}/.buildozer/ant
         
         echo "Downloading Apache Ant from ${ANT_URL}..."
