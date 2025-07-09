@@ -55,10 +55,12 @@ jobs:
         # Limpia el archivo .zip después de la extracción (opcional pero buena práctica)
         rm "${ANT_PATH}/${ANT_FILE}"
 
-    # Nuevo paso para asegurar las macros de libtool
+    # Paso actualizado para configurar las macros de libtool
     - name: Configure Libtool Macros
       run: |
-        libtoolize --automake --copy --force || true
+        export ACLOCAL_PATH="/usr/share/aclocal" # Indica a aclocal dónde buscar
+        aclocal -I /usr/share/aclocal # Ejecuta aclocal explícitamente
+        autoreconf -i # Ejecuta autoreconf
         
     - name: Build Android APK
       run: |
