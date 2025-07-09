@@ -43,7 +43,7 @@ android.api = 29
 android.minapi = 26
 
 # (str) Android NDK version to use
-android.ndk = 25b
+android.ndk = 26b
 
 # (str) Android SDK location (if not set, buildozer will try to download it)
 # android.sdk = 27
