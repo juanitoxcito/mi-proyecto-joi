@@ -21,14 +21,14 @@ jobs:
     - name: Install build tools for Autoreconf
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential autoconf m4 libtool automake unzip libtool-bin autoconf-archive # Paquetes actualizados
+        sudo apt-get install -y build-essential autoconf m4 libtool automake unzip libtool-bin autoconf-archive
 
     - name: Set up Android SDK
       uses: android-actions/setup-android@v3
       with:
         api-level: 29
         build-tools: 30.0.3
-        ndk: 25.1.8937393 # Corresponde a NDK 25b
+        ndk: 23.1.7779262 # ¡CAMBIO A NDK 23b, más estable!
 
     - name: Install dependencies
       run: |
@@ -38,9 +38,9 @@ jobs:
 
     - name: Download and Setup Apache Ant
       run: |
-        ANT_VERSION=1.10.15 # ¡VERSION DE ANT ACTUALIZADA!
+        ANT_VERSION=1.10.15
         ANT_FILE=apache-ant-${ANT_VERSION}-bin.zip
-        ANT_URL=https://github.com/juanitoxcito/mi-proyecto-joi/releases/download/ant-files/${ANT_FILE} # ¡TU NUEVA URL DE GITHUB RELEASE!
+        ANT_URL=https://github.com/juanitoxcito/mi-proyecto-joi/releases/download/ant-files/${ANT_FILE} # ¡TU URL DE GITHUB RELEASE!
         ANT_PATH=${{ github.workspace }}/.buildozer/ant
         
         echo "Downloading Apache Ant from ${ANT_URL}..."
@@ -54,13 +54,6 @@ jobs:
         
         # Limpia el archivo .zip después de la extracción (opcional pero buena práctica)
         rm "${ANT_PATH}/${ANT_FILE}"
-
-    # Paso actualizado para configurar las macros de libtool
-    - name: Configure Libtool Macros
-      run: |
-        export ACLOCAL_PATH="/usr/share/aclocal" # Indica a aclocal dónde buscar
-        aclocal -I /usr/share/aclocal # Ejecuta aclocal explícitamente
-        autoreconf -i # Ejecuta autoreconf
         
     - name: Build Android APK
       run: |
