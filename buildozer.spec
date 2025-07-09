@@ -37,13 +37,13 @@ source.exclude_dirs = tests, bin
 # android.entrypoint = org.kivy.android.PythonActivity
 
 # (str) Android SDK version to use
-android.api = 30
+android.api = 29
 
 # (str) Minimum Android SDK version to support
 android.minapi = 21
 
 # (str) Android NDK version to use
-# android.ndk = 21b
+ android.ndk = 23b
 
 # (str) Android SDK location (if not set, buildozer will try to download it)
 # android.sdk = 27
