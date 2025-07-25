@@ -67,7 +67,8 @@ jobs:
       run: |
         buildozer init
         # Escribir el script de Python a un archivo temporal de forma segura para YAML
-        python -c "
+        # Usamos un bloque literal (|) para el script, lo que es más robusto para YAML
+        cat > modify_spec.py << 'EOF'
 import os
 
 buildozer_spec_path = os.path.join(os.getcwd(), 'buildozer.spec')
@@ -100,8 +101,7 @@ with open(buildozer_spec_path, 'w') as f:
     f.writelines(new_lines)
 
 print('buildozer.spec modificado exitosamente con la configuración deseada.')
-" > modify_spec.py # Redirigimos la salida del script a un archivo
-
+EOF
         # Ejecutar el script de Python
         python modify_spec.py
 
