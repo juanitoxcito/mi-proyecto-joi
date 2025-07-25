@@ -59,8 +59,8 @@ jobs:
       run: |
         echo "JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> $GITHUB_ENV
 
-    - name: Initialize Buildozer
-      run: buildozer init
+    # No necesitamos 'buildozer clean' ni 'buildozer init' si el spec ya existe
+    # Vamos directamente a modificar el buildozer.spec existente
 
     # Pasos individuales para modificar el buildozer.spec
     - name: Modify buildozer.spec - Title
@@ -95,7 +95,7 @@ jobs:
       run: |
         sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec
 
-    - name: Update Python for Android toolchain # Este paso es crucial para el FileNotFoundError
+    - name: Update Python for Android toolchain
       run: |
         buildozer android update
 
