@@ -60,9 +60,19 @@ jobs:
       run: |
         echo "JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64" >> $GITHUB_ENV # Apuntamos a Java 17
         # Configurar las variables de entorno que Buildozer espera para el SDK/NDK
-        echo "ANDROID_HOME=/home/runner/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
-        echo "ANDROID_SDK_ROOT=/home/runner/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
-        echo "ANDROID_NDK_ROOT=/home/runner/.buildozer/android/platform/android-ndk-r23b" >> $GITHUB_ENV # NDK 23b
+        echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+        echo "ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/23.2.8568313" >> $GITHUB_ENV # NDK 23b (ruta común)
+        # Añadir sdkmanager al PATH para ejecución directa
+        echo "/usr/local/lib/android/sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+
+    - name: Install Android SDK components and accept licenses # ¡REINTRODUCIDO y AJUSTADO!
+      run: |
+        # Instalar platform-tools, build-tools;33.0.0 y platforms;android-33
+        # Usando 'yes |' para aceptar licencias automáticamente
+        yes | sdkmanager "platform-tools" "build-tools;33.0.0" "platforms;android-33"
+        # Aceptar todas las licencias del SDK de Android (redundante pero seguro)
+        yes | sdkmanager --licenses
 
     - name: Clean buildozer.spec if it exists
       run: |
@@ -111,11 +121,11 @@ jobs:
       run: |
         sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
 
-    - name: Update Python for Android toolchain # ¡Este paso descarga python-for-android!
+    - name: Update Python for Android toolchain
       run: |
         buildozer android update
 
-    - name: Clean Buildozer build artifacts # ¡MOVIDO! Ahora se ejecuta después de 'update'
+    - name: Clean Buildozer build artifacts
       run: |
         buildozer android clean
 
