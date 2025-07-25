@@ -60,14 +60,26 @@ jobs:
       run: |
         echo "JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> $GITHUB_ENV
 
-    - name: Clean buildozer.spec if it exists # ¡NUEVO PASO! Borrar buildozer.spec si ya existe
+    # ¡NUEVOS PASOS CLAVE para el SDK de Android!
+    - name: Install Android SDK components
+      run: |
+        # Instalar platform-tools y build-tools;34.0.0 (compatible con API 33)
+        # 'echo "y" |' simula la aceptación de la licencia
+        /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "build-tools;34.0.0"
+
+    - name: Accept Android SDK licenses
+      run: |
+        # Aceptar todas las licencias del SDK de Android
+        echo "y" | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+
+    - name: Clean buildozer.spec if it exists
       run: |
         if [ -f buildozer.spec ]; then
           rm buildozer.spec
           echo "buildozer.spec eliminado para asegurar un inicio limpio."
         fi
 
-    - name: Initialize Buildozer # Volvemos a inicializarlo para que se cree limpio
+    - name: Initialize Buildozer
       run: buildozer init
 
     # Pasos individuales para modificar el buildozer.spec
