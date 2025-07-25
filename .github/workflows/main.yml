@@ -66,9 +66,8 @@ jobs:
     - name: Initialize Buildozer and modify spec file
       run: |
         buildozer init
-        # Escribir el script de Python a un archivo temporal de forma segura para YAML
-        # Usamos un bloque literal (|) para el script, lo que es más robusto para YAML
-        cat > modify_spec.py << 'EOF'
+        # Ejecutar el script de Python usando un 'here document' para mayor robustez
+        python <<EOF
 import os
 
 buildozer_spec_path = os.path.join(os.getcwd(), 'buildozer.spec')
@@ -102,8 +101,6 @@ with open(buildozer_spec_path, 'w') as f:
 
 print('buildozer.spec modificado exitosamente con la configuración deseada.')
 EOF
-        # Ejecutar el script de Python
-        python modify_spec.py
 
     - name: Build Android APK
       run: |
