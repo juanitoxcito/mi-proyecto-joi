@@ -66,7 +66,7 @@ jobs:
       run: |
         buildozer init
         # Escribir el script de Python a un archivo temporal
-        cat <<EOF > modify_spec.py
+        cat << 'EOF' > modify_spec.py
 import os
 
 buildozer_spec_path = os.path.join(os.getcwd(), 'buildozer.spec')
