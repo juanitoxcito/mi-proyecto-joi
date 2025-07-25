@@ -49,6 +49,7 @@ jobs:
             autoconf \
             libtool-bin \
             m4 \
+            automake \ # ¡NUEVO! Añadimos automake
             autotools-dev
         pip install --upgrade pip
         pip install cython==0.29.36 pyjnius==1.4.2
@@ -58,9 +59,6 @@ jobs:
     - name: Configure JAVA_HOME
       run: |
         echo "JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> $GITHUB_ENV
-
-    # No necesitamos 'buildozer clean' ni 'buildozer init' si el spec ya existe
-    # Vamos directamente a modificar el buildozer.spec existente
 
     # Pasos individuales para modificar el buildozer.spec
     - name: Modify buildozer.spec - Title
@@ -89,11 +87,16 @@ jobs:
 
     - name: Modify buildozer.spec - Android NDK
       run: |
-        sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec
-
+        sed -i 's/^#*android.ndk = .*$/android.ndk = 23b/' buildozer.spec # ¡CAMBIO CLAVE! NDK 23b
+    
     - name: Modify buildozer.spec - Android Architectures
       run: |
         sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec
+
+    - name: Modify buildozer.spec - Log Level # ¡NUEVO! Para más detalle en los logs
+      run: |
+        sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
+
 
     - name: Update Python for Android toolchain
       run: |
