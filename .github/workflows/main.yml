@@ -65,8 +65,8 @@ jobs:
     - name: Initialize Buildozer and modify spec file
       run: |
         buildozer init
-        # Modificar buildozer.spec programáticamente
-        python -c "
+        # Escribir el script de Python a un archivo temporal
+        cat <<EOF > modify_spec.py
 import os
 
 buildozer_spec_path = os.path.join(os.getcwd(), 'buildozer.spec')
@@ -99,7 +99,9 @@ with open(buildozer_spec_path, 'w') as f:
     f.writelines(new_lines)
 
 print('buildozer.spec modificado exitosamente con la configuración deseada.')
-        "
+EOF
+        # Ejecutar el script de Python
+        python modify_spec.py
 
     - name: Build Android APK
       run: |
