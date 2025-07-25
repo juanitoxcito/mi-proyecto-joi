@@ -59,35 +59,48 @@ jobs:
       run: |
         echo "JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> $GITHUB_ENV
 
-    - name: Clean All Buildozer Artifacts # ¡NUEVO PASO CLAVE! Limpieza total
-      run: |
-        buildozer android distclean
+    - name: Initialize Buildozer
+      run: buildozer init
 
-    # El resto de la configuración del buildozer.spec se hará automáticamente por buildozer init/debug
-    # No necesitamos los pasos individuales de sed aquí, buildozer android debug los gestionará
-
-    - name: Build Android APK # ¡Este paso ahora se encarga de todo!
+    # Pasos individuales para modificar el buildozer.spec
+    - name: Modify buildozer.spec - Title
       run: |
-        # Modificar buildozer.spec usando sed para asegurar los valores correctos
-        # Primero, reemplazamos el valor si la línea está comentada o no
         sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec
-        sed -i 's/^#*package.name = .*$/package.name = joi/' buildozer.spec
-        sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec
-        sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec
-        sed -i 's/^#*android.minapi = .*$/android.minapi = 24/' buildozer.spec
-        sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,firebase-admin,google-generativeai,requests,pytz,plyer/' buildozer.spec
-        sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec
-        sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec
-        # Luego, nos aseguramos de que las líneas no estén comentadas (quitamos el # inicial si existe)
-        sed -i 's/^#title =/title =/' buildozer.spec
-        sed -i 's/^#package.name =/package.name =/' buildozer.spec
-        sed -i 's/^#package.domain =/package.domain =/' buildozer.spec
-        sed -i 's/^#android.api =/android.api =/' buildozer.spec
-        sed -i 's/^#android.minapi =/android.minapi =/' buildozer.spec
-        sed -i 's/^#requirements =/requirements =/' buildozer.spec
-        sed -i 's/^#android.ndk =/android.ndk =/' buildozer.spec
-        sed -i 's/^#android.archs =/android.archs =/' buildozer.spec
 
+    - name: Modify buildozer.spec - Package Name
+      run: |
+        sed -i 's/^#*package.name = .*$/package.name = joi/' buildozer.spec
+
+    - name: Modify buildozer.spec - Package Domain
+      run: |
+        sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec
+
+    - name: Modify buildozer.spec - Android API
+      run: |
+        sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec
+
+    - name: Modify buildozer.spec - Android Min API
+      run: |
+        sed -i 's/^#*android.minapi = .*$/android.minapi = 24/' buildozer.spec
+
+    - name: Modify buildozer.spec - Requirements
+      run: |
+        sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,firebase-admin,google-generativeai,requests,pytz,plyer/' buildozer.spec
+
+    - name: Modify buildozer.spec - Android NDK
+      run: |
+        sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec
+
+    - name: Modify buildozer.spec - Android Architectures
+      run: |
+        sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec
+
+    - name: Update Python for Android toolchain # Este paso es crucial para el FileNotFoundError
+      run: |
+        buildozer android update
+
+    - name: Build Android APK
+      run: |
         buildozer android debug
 
     - name: Upload APK artifact
