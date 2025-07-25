@@ -56,7 +56,7 @@ jobs:
         # ¡IMPORTANTE! Hemos añadido versiones específicas para httpx, idna, charset_normalizer Y requests
         pip install kivy kivymd python-for-android buildozer plyer firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0
 
-    - name: Configure JAVA_HOME and Android SDK/NDK paths # Ajustamos JAVA_HOME y añadimos ANDROID_HOME/SDK_ROOT/NDK_ROOT
+    - name: Configure JAVA_HOME and Android SDK/NDK paths
       run: |
         echo "JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64" >> $GITHUB_ENV # Apuntamos a Java 17
         # Configurar las variables de entorno que Buildozer espera para el SDK/NDK
@@ -64,12 +64,12 @@ jobs:
         echo "ANDROID_SDK_ROOT=/home/runner/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
         echo "ANDROID_NDK_ROOT=/home/runner/.buildozer/android/platform/android-ndk-r23b" >> $GITHUB_ENV # NDK 23b
 
-    # Eliminamos los pasos manuales de instalación y aceptación de licencias del SDK.
-    # Buildozer se encargará de esto internamente.
-
-    - name: Clean Buildozer build artifacts # Volvemos a usar 'clean' para asegurar una limpieza adecuada
+    - name: Clean buildozer.spec if it exists
       run: |
-        buildozer android clean
+        if [ -f buildozer.spec ]; then
+          rm buildozer.spec
+          echo "buildozer.spec eliminado para asegurar un inicio limpio."
+        fi
 
     - name: Initialize Buildozer
       run: buildozer init
@@ -111,10 +111,13 @@ jobs:
       run: |
         sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
 
-
-    - name: Update Python for Android toolchain
+    - name: Update Python for Android toolchain # ¡Este paso descarga python-for-android!
       run: |
         buildozer android update
+
+    - name: Clean Buildozer build artifacts # ¡MOVIDO! Ahora se ejecuta después de 'update'
+      run: |
+        buildozer android clean
 
     - name: Build Android APK
       run: |
