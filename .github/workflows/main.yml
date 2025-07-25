@@ -56,9 +56,9 @@ jobs:
         # ¡IMPORTANTE! Hemos añadido versiones específicas para httpx, idna, charset_normalizer Y requests
         pip install kivy kivymd python-for-android buildozer plyer firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0
 
-    - name: Configure JAVA_HOME
+    - name: Configure JAVA_HOME # ¡CAMBIO CLAVE! Usamos Java 17
       run: |
-        echo "JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> $GITHUB_ENV
+        echo "JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64" >> $GITHUB_ENV # Apuntamos a Java 17
 
     # ¡NUEVOS PASOS CLAVE para el SDK de Android!
     - name: Install Android SDK components
