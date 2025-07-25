@@ -63,44 +63,42 @@ jobs:
       run: |
         buildozer android clean
 
-    - name: Initialize Buildozer and modify spec file
+    - name: Initialize Buildozer
+      run: buildozer init
+
+    # Pasos individuales para modificar el buildozer.spec
+    # Usamos 'run: |' para asegurar que YAML interprete correctamente el comando sed
+    - name: Modify buildozer.spec - Title
       run: |
-        buildozer init
-        # Ejecutar el script de Python usando un 'here document' para mayor robustez
-        python <<EOF
-import os
+        sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec
 
-buildozer_spec_path = os.path.join(os.getcwd(), 'buildozer.spec')
+    - name: Modify buildozer.spec - Package Name
+      run: |
+        sed -i 's/^#*package.name = .*$/package.name = joi/' buildozer.spec
 
-with open(buildozer_spec_path, 'r') as f:
-    lines = f.readlines()
+    - name: Modify buildozer.spec - Package Domain
+      run: |
+        sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec
 
-new_lines = []
-for line in lines:
-    if line.strip().startswith('title ='):
-        new_lines.append('title = JoiApp\n')
-    elif line.strip().startswith('package.name ='):
-        new_lines.append('package.name = joi\n')
-    elif line.strip().startswith('package.domain ='):
-        new_lines.append('package.domain = org.joi\n')
-    elif line.strip().startswith('android.api ='):
-        new_lines.append('android.api = 33\n')
-    elif line.strip().startswith('android.minapi ='):
-        new_lines.append('android.minapi = 24\n')
-    elif line.strip().startswith('requirements ='):
-        new_lines.append('requirements = python3,kivy,kivymd,firebase-admin,google-generativeai,requests,pytz,plyer\n')
-    elif line.strip().startswith('android.ndk ='):
-        new_lines.append('android.ndk = 25b\n')
-    elif line.strip().startswith('android.archs ='):
-        new_lines.append('android.archs = arm64-v8a,armeabi-v7a\n')
-    else:
-        new_lines.append(line)
+    - name: Modify buildozer.spec - Android API
+      run: |
+        sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec
 
-with open(buildozer_spec_path, 'w') as f:
-    f.writelines(new_lines)
+    - name: Modify buildozer.spec - Android Min API
+      run: |
+        sed -i 's/^#*android.minapi = .*$/android.minapi = 24/' buildozer.spec
 
-print('buildozer.spec modificado exitosamente con la configuración deseada.')
-EOF
+    - name: Modify buildozer.spec - Requirements
+      run: |
+        sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,firebase-admin,google-generativeai,requests,pytz,plyer/' buildozer.spec
+
+    - name: Modify buildozer.spec - Android NDK
+      run: |
+        sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec
+
+    - name: Modify buildozer.spec - Android Architectures
+      run: |
+        sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec
 
     - name: Build Android APK
       run: |
