@@ -60,7 +60,14 @@ jobs:
       run: |
         echo "JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> $GITHUB_ENV
 
-    - name: Initialize Buildozer
+    - name: Clean buildozer.spec if it exists # ¡NUEVO PASO! Borrar buildozer.spec si ya existe
+      run: |
+        if [ -f buildozer.spec ]; then
+          rm buildozer.spec
+          echo "buildozer.spec eliminado para asegurar un inicio limpio."
+        fi
+
+    - name: Initialize Buildozer # Volvemos a inicializarlo para que se cree limpio
       run: buildozer init
 
     # Pasos individuales para modificar el buildozer.spec
