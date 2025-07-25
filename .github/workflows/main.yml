@@ -60,8 +60,17 @@ jobs:
       run: |
         echo "JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64" >> $GITHUB_ENV # Apuntamos a Java 17
 
-    # ¡ELIMINAMOS los pasos manuales de instalación y aceptación de licencias del SDK!
-    # Buildozer se encargará de esto internamente con 'buildozer android update' y 'debug'
+    - name: Install Android SDK components and accept licenses (System-wide) # ¡AJUSTADO!
+      run: |
+        # Asegurarse de que ANDROID_SDK_ROOT esté configurado para sdkmanager
+        export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
+        # Añadir sdkmanager al PATH para ejecución directa
+        export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
+
+        # Instalar platform-tools, build-tools;30.0.3 y platforms;android-33
+        sdkmanager "platform-tools" "build-tools;30.0.3" "platforms;android-33"
+        # Aceptar licencias
+        yes | sdkmanager --licenses
 
     - name: Clean buildozer.spec if it exists
       run: |
