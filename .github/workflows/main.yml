@@ -56,21 +56,12 @@ jobs:
         # ¡IMPORTANTE! Hemos añadido versiones específicas para httpx, idna, charset_normalizer Y requests
         pip install kivy kivymd python-for-android buildozer plyer firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0
 
-    - name: Configure JAVA_HOME # ¡CAMBIO CLAVE! Usamos Java 17
+    - name: Configure JAVA_HOME
       run: |
         echo "JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64" >> $GITHUB_ENV # Apuntamos a Java 17
 
-    # ¡NUEVOS PASOS CLAVE para el SDK de Android!
-    - name: Install Android SDK components
-      run: |
-        # Instalar platform-tools y build-tools;34.0.0 (compatible con API 33)
-        # 'echo "y" |' simula la aceptación de la licencia
-        /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "build-tools;34.0.0"
-
-    - name: Accept Android SDK licenses
-      run: |
-        # Aceptar todas las licencias del SDK de Android
-        echo "y" | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+    # ¡ELIMINAMOS los pasos manuales de instalación y aceptación de licencias del SDK!
+    # Buildozer se encargará de esto internamente con 'buildozer android update' y 'debug'
 
     - name: Clean buildozer.spec if it exists
       run: |
