@@ -66,8 +66,8 @@ jobs:
     - name: Initialize Buildozer and modify spec file
       run: |
         buildozer init
-        # Escribir el script de Python a un archivo temporal
-        cat << 'EOF' > modify_spec.py
+        # Escribir el script de Python a un archivo temporal de forma segura para YAML
+        python -c "
 import os
 
 buildozer_spec_path = os.path.join(os.getcwd(), 'buildozer.spec')
@@ -100,7 +100,8 @@ with open(buildozer_spec_path, 'w') as f:
     f.writelines(new_lines)
 
 print('buildozer.spec modificado exitosamente con la configuración deseada.')
-EOF
+" > modify_spec.py # Redirigimos la salida del script a un archivo
+
         # Ejecutar el script de Python
         python modify_spec.py
 
