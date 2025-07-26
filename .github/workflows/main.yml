@@ -24,42 +24,9 @@ jobs:
         distribution: 'temurin' # Distribución de Java
         java-version: '17' # Versión de Java
 
-    - name: Download and setup Android Command-Line Tools and SDK Components
-      run: |
-        ANDROID_SDK_ROOT_PATH="/usr/local/lib/android/sdk"
-        mkdir -p "$ANDROID_SDK_ROOT_PATH"
-        
-        # Descargar la última versión de las herramientas de línea de comandos (cmdline-tools)
-        CMDLINE_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip"
-        CMDLINE_TOOLS_INSTALL_DIR="$ANDROID_SDK_ROOT_PATH/cmdline-tools"
-        
-        mkdir -p "$CMDLINE_TOOLS_INSTALL_DIR"
-        
-        wget -q "$CMDLINE_TOOLS_URL" -O cmdline-tools.zip
-        unzip -q cmdline-tools.zip -d "$CMDLINE_TOOLS_INSTALL_DIR"
-        
-        # Limpiar la carpeta 'latest' antes de mover los archivos
-        rm -rf "$CMDLINE_TOOLS_INSTALL_DIR/latest"
-        mkdir -p "$CMDLINE_TOOLS_INSTALL_DIR/latest"
-        
-        # Mover el contenido descomprimido a la carpeta 'latest'
-        mv "$CMDLINE_TOOLS_INSTALL_DIR"/cmdline-tools/* "$CMDLINE_TOOLS_INSTALL_DIR"/latest/
-        
-        # Eliminar la carpeta 'cmdline-tools' redundante que quedó después de mover su contenido
-        rm -rf "$CMDLINE_TOOLS_INSTALL_DIR/cmdline-tools"
-        
-        # Configurar ANDROID_SDK_ROOT y añadir sdkmanager al PATH para el paso actual
-        export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT_PATH"
-        export PATH="$PATH:$ANDROID_SDK_ROOT_PATH/cmdline-tools/latest/bin"
-        
-        # ¡NUEVO! Crear un enlace simbólico para sdkmanager en la ubicación antigua esperada por Buildozer
-        mkdir -p "$ANDROID_SDK_ROOT_PATH/tools/bin"
-        ln -s "$ANDROID_SDK_ROOT_PATH/cmdline-tools/latest/bin/sdkmanager" "$ANDROID_SDK_ROOT_PATH/tools/bin/sdkmanager"
-        
-        # Instalar platform-tools, build-tools;33.0.0 y platforms;android-33
-        yes | sdkmanager "platform-tools" "build-tools;33.0.0" "platforms;android-33"
-        # Aceptar licencias (esto es crucial y el 'yes |' lo automatiza)
-        yes | sdkmanager --licenses
+    # ELIMINAMOS TODOS LOS PASOS MANUALES DE INSTALACIÓN DEL SDK/NDK
+    # Y LA ACCIÓN 'android-actions/setup-android'.
+    # Dejaremos que Buildozer gestione sus propias descargas y licencias.
 
     - name: Install Buildozer and Kivy dependencies
       run: |
@@ -95,7 +62,7 @@ jobs:
             autotools-dev
         pip install --upgrade pip
         pip install cython==0.29.36 pyjnius==1.4.2
-        # ¡IMPORTANTES! Versiones específicas para httpx, idna, charset_normalizer Y requests
+        # ¡IMPORTANTE! Hemos añadido versiones específicas para httpx, idna, charset_normalizer Y requests
         pip install kivy kivymd python-for-android buildozer plyer firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0
 
     - name: Clean .buildozer directory
@@ -150,17 +117,26 @@ jobs:
       run: |
         sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
 
-    - name: Modify buildozer.spec - Accept SDK License
+    - name: Modify buildozer.spec - Accept SDK License # ¡CRUCIAL! Asegurarse de que esta línea esté bien configurada
       run: |
-        sed -i '/^#*android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec
+        # Usamos 'grep -q' para verificar si la línea existe. Si no, la añadimos.
+        # Si existe, la reemplazamos.
+        if ! grep -q '^android.accept_sdk_license =' buildozer.spec; then
+          echo 'android.accept_sdk_license = True' >> buildozer.spec
+        else
+          sed -i '/^android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec
+        fi
     
-    - name: Modify buildozer.spec - Android Build Tools Version
+    - name: Modify buildozer.spec - Android Build Tools Version # ¡CRUCIAL! Asegurarse de que esta línea esté bien configurada
       run: |
-        sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec
+        if ! grep -q '^android.build_tools =' buildozer.spec; then
+          echo 'android.build_tools = 33.0.0' >> buildozer.spec
+        else
+          sed -i '/^android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec
+        fi
 
-    # Eliminamos android.sdk_path y android.ndk_path de buildozer.spec
-    # para que Buildozer use las rutas por defecto o las variables de entorno.
-    # La acción ya se encarga de configurar el PATH.
+    # ELIMINAMOS android.sdk_path y android.ndk_path de buildozer.spec.
+    # Dejaremos que Buildozer los gestione internamente.
 
     - name: Update Python for Android toolchain
       run: |
