@@ -7,63 +7,22 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest # Usamos un entorno Linux actualizado
+    runs-on: ubuntu-latest # Todavía necesitamos un runner de Ubuntu para ejecutar el contenedor
+    container: kivy/buildozer # ¡NUEVO Y CLAVE! Usamos el contenedor Docker preconfigurado
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4 # Descarga tu código del repositorio
+      uses: actions/checkout@v4 # Descarga tu código del repositorio (dentro del contenedor)
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10' # Usamos Python 3.10, que es compatible con Kivy y Buildozer
+    # Eliminamos todos los pasos de instalación de Python, Java, y dependencias de Buildozer
+    # porque el contenedor 'kivy/buildozer' ya los tiene.
 
-    - name: Set up Java 17
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin' # Distribución de Java
-        java-version: '17' # Versión de Java
-
-    # ELIMINAMOS TODOS LOS PASOS MANUALES DE INSTALACIÓN DEL SDK/NDK
-    # Y LA ACCIÓN 'android-actions/setup-android'.
-    # Dejaremos que Buildozer gestione sus propias descargas y licencias.
-
-    - name: Install Buildozer and Kivy dependencies
+    - name: Install Python dependencies (if not already in container)
       run: |
-        sudo apt-get update -y
-        sudo apt-get install -y \
-            build-essential \
-            libffi-dev \
-            git \
-            zip \
-            unzip \
-            ant \
-            python3-pip \
-            python3-dev \
-            cython3 \
-            libsdl2-dev \
-            libsdl2-image-dev \
-            libsdl2-mixer-dev \
-            libsdl2-ttf-dev \
-            libportmidi-dev \
-            libswscale-dev \
-            libavformat-dev \
-            libavcodec-dev \
-            zlib1g-dev \
-            libgstreamer1.0-dev \
-            gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good \
-            libtool \
-            pkg-config \
-            autoconf \
-            libtool-bin \
-            m4 \
-            automake \
-            autotools-dev
+        # Kivy y Buildozer ya están en el contenedor.
+        # Solo instalamos las dependencias específicas de tu proyecto si no están.
         pip install --upgrade pip
-        pip install cython==0.29.36 pyjnius==1.4.2
-        # ¡IMPORTANTE! Hemos añadido versiones específicas para httpx, idna, charset_normalizer Y requests
-        pip install kivy kivymd python-for-android buildozer plyer firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0
+        pip install pyjnius==1.4.2 firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0 pytz plyer
 
     - name: Clean .buildozer directory
       run: |
@@ -81,6 +40,7 @@ jobs:
       run: buildozer init
 
     # Pasos individuales para modificar el buildozer.spec
+    # Solo modificamos lo esencial de tu aplicación, el SDK/NDK/licencias ya están manejados por el contenedor.
     - name: Modify buildozer.spec - Title
       run: |
         sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec
@@ -103,10 +63,13 @@ jobs:
 
     - name: Modify buildozer.spec - Requirements
       run: |
-        sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,firebase-admin,google-generativeai,requests,pytz,plyer/' buildozer.spec
+        # Aseguramos que los requisitos estén en el buildozer.spec
+        # No incluimos kivy ni python3 aquí, ya que el contenedor los proporciona.
+        sed -i 's/^#*requirements = .*$/requirements = pyjnius,firebase-admin,google-generativeai,requests,pytz,plyer/' buildozer.spec
 
     - name: Modify buildozer.spec - Android NDK
       run: |
+        # El contenedor ya tiene un NDK compatible, pero lo forzamos a 25b si es necesario.
         sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec
     
     - name: Modify buildozer.spec - Android Architectures
@@ -117,37 +80,13 @@ jobs:
       run: |
         sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
 
-    - name: Modify buildozer.spec - Accept SDK License # ¡CRUCIAL! Asegurarse de que esta línea esté bien configurada
-      run: |
-        if ! grep -q '^android.accept_sdk_license =' buildozer.spec; then
-          echo 'android.accept_sdk_license = True' >> buildozer.spec
-        else
-          sed -i '/^android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec
-        fi
-    
-    - name: Modify buildozer.spec - Android Build Tools Version # ¡CRUCIAL! Forzar la versión 30.0.3
-      run: |
-        if ! grep -q '^android.build_tools =' buildozer.spec; then
-          echo 'android.build_tools = 30.0.3' >> buildozer.spec
-        else
-          sed -i '/^android.build_tools =/c\android.build_tools = 30.0.3' buildozer.spec
-        fi
-
-    # ELIMINAMOS android.sdk_path y android.ndk_path de buildozer.spec.
-    # Dejaremos que Buildozer los gestione internamente en sus rutas por defecto.
-
-
-    - name: Update Python for Android toolchain
-      run: |
-        buildozer android update
-
-    - name: Clean Buildozer build artifacts
-      run: |
-        buildozer android clean
+    # Eliminamos las líneas de android.accept_sdk_license, android.build_tools,
+    # android.sdk_path, android.ndk_path del buildozer.spec,
+    # ya que el contenedor se encarga de las licencias y las rutas del SDK/NDK.
 
     - name: Build Android APK
       run: |
-        buildozer android debug
+        buildozer android debug # ¡Solo este comando debería ser suficiente!
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
