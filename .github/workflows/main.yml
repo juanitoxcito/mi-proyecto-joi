@@ -24,12 +24,12 @@ jobs:
         distribution: 'temurin' # Distribución de Java
         java-version: '17' # Versión de Java
 
-    - name: Install Android SDK and NDK via dedicated action # ¡NUEVO PASO CLAVE!
+    - name: Install Android SDK and NDK via dedicated action
       uses: android-actions/setup-android@v2 # Acción para configurar el SDK/NDK
       with:
         api-level: 33 # Nivel de API de Android
-        build-tools: 33.0.0 # Versión de las herramientas de compilación (compatible con API 33)
-        ndk: 25.2.9519653 # Versión específica del NDK (equivalente a 25b)
+        build-tools: 33.0.0 # Versión de las herramientas de compilación
+        ndk: 25.2.9519653 # Versión específica del NDK (compatible con 25b)
         accept-licenses: true # Aceptar licencias automáticamente
 
     - name: Install Buildozer and Kivy dependencies
@@ -85,9 +85,6 @@ jobs:
       run: buildozer init
 
     # Pasos individuales para modificar el buildozer.spec
-    # ¡IMPORTANTE! Hemos eliminado las líneas de 'android.accept_sdk_license', 'android.build_tools',
-    # 'android.sdk_path' y 'android.ndk_path' de aquí.
-    # La acción 'setup-android' se encarga de ellas.
     - name: Modify buildozer.spec - Title
       run: |
         sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec
@@ -112,7 +109,7 @@ jobs:
       run: |
         sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,firebase-admin,google-generativeai,requests,pytz,plyer/' buildozer.spec
 
-    - name: Modify buildozer.spec - Android NDK # Mantenemos esta para que Buildozer sepa qué NDK usar
+    - name: Modify buildozer.spec - Android NDK
       run: |
         sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec
     
@@ -123,6 +120,23 @@ jobs:
     - name: Modify buildozer.spec - Log Level
       run: |
         sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
+
+    - name: Modify buildozer.spec - Accept SDK License
+      run: |
+        sed -i '/^#*android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec
+    
+    - name: Modify buildozer.spec - Android Build Tools Version
+      run: |
+        sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec
+
+    - name: Modify buildozer.spec - Android SDK Path # ¡NUEVO! Ruta explícita para el SDK
+      run: |
+        sed -i '/^#*android.sdk_path =/c\android.sdk_path = /usr/local/lib/android/sdk' buildozer.spec
+
+    - name: Modify buildozer.spec - Android NDK Path # ¡NUEVO! Ruta explícita para el NDK
+      run: |
+        sed -i '/^#*android.ndk_path =/c\android.ndk_path = /usr/local/lib/android/sdk/ndk/25.2.9519653' buildozer.spec
+
 
     - name: Update Python for Android toolchain
       run: |
