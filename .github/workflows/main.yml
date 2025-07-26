@@ -24,29 +24,36 @@ jobs:
         distribution: 'temurin' # Distribución de Java
         java-version: '17' # Versión de Java
 
-    - name: Download and setup Android Command-Line Tools and SDK Components
+    - name: Download and setup Android Command-Line Tools and SDK Components # ¡AJUSTADO!
       run: |
         ANDROID_SDK_ROOT_PATH="/usr/local/lib/android/sdk"
         mkdir -p "$ANDROID_SDK_ROOT_PATH"
         
         # Descargar la última versión de las herramientas de línea de comandos (cmdline-tools)
         CMDLINE_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip"
-        CMDLINE_TOOLS_DIR="$ANDROID_SDK_ROOT_PATH/cmdline-tools"
-        mkdir -p "$CMDLINE_TOOLS_DIR"
+        CMDLINE_TOOLS_INSTALL_DIR="$ANDROID_SDK_ROOT_PATH/cmdline-tools"
+        
+        mkdir -p "$CMDLINE_TOOLS_INSTALL_DIR"
         
         wget -q "$CMDLINE_TOOLS_URL" -O cmdline-tools.zip
-        unzip -q cmdline-tools.zip -d "$CMDLINE_TOOLS_DIR"
+        unzip -q cmdline-tools.zip -d "$CMDLINE_TOOLS_INSTALL_DIR"
         
-        # ¡NUEVO! Limpiar la carpeta 'latest' antes de mover los archivos
-        rm -rf "$CMDLINE_TOOLS_DIR"/latest
-        mkdir -p "$CMDLINE_TOOLS_DIR"/latest # Recrear la carpeta vacía
+        # La descompresión crea una carpeta 'cmdline-tools' dentro de $CMDLINE_TOOLS_INSTALL_DIR.
+        # Necesitamos mover su contenido a una carpeta 'latest' para que sdkmanager la encuentre.
         
-        # Mover el contenido descomprimido a la carpeta 'latest'
-        mv "$CMDLINE_TOOLS_DIR"/cmdline-tools/* "$CMDLINE_TOOLS_DIR"/latest
+        # Primero, eliminar cualquier directorio 'latest' existente y recrearlo vacío
+        rm -rf "$CMDLINE_TOOLS_INSTALL_DIR/latest"
+        mkdir -p "$CMDLINE_TOOLS_INSTALL_DIR/latest"
         
-        # Configurar ANDROID_SDK_ROOT y añadir sdkmanager al PATH
-        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT_PATH" >> $GITHUB_ENV
-        echo "$ANDROID_SDK_ROOT_PATH/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        # Mover el contenido de la carpeta 'cmdline-tools' extraída a 'latest'
+        mv "$CMDLINE_TOOLS_INSTALL_DIR/cmdline-tools/"* "$CMDLINE_TOOLS_INSTALL_DIR/latest/"
+        
+        # Eliminar la carpeta 'cmdline-tools' redundante que quedó después de mover su contenido
+        rm -rf "$CMDLINE_TOOLS_INSTALL_DIR/cmdline-tools"
+        
+        # Configurar ANDROID_SDK_ROOT y añadir sdkmanager al PATH para el paso actual
+        export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT_PATH"
+        export PATH="$PATH:$ANDROID_SDK_ROOT_PATH/cmdline-tools/latest/bin"
         
         # Instalar platform-tools, build-tools;33.0.0 y platforms;android-33
         yes | sdkmanager "platform-tools" "build-tools;33.0.0" "platforms;android-33"
