@@ -8,14 +8,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest # Todavía necesitamos un runner de Ubuntu para ejecutar el contenedor
-    container: kivy/buildozer # ¡NUEVO Y CLAVE! Usamos el contenedor Docker preconfigurado
+    container: kivy/buildozer:stable # ¡CAMBIO CLAVE! Usamos la etiqueta 'stable'
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4 # Descarga tu código del repositorio (dentro del contenedor)
-
-    # Eliminamos todos los pasos de instalación de Python, Java, y dependencias de Buildozer
-    # porque el contenedor 'kivy/buildozer' ya los tiene.
 
     - name: Install Python dependencies (if not already in container)
       run: |
@@ -40,7 +37,6 @@ jobs:
       run: buildozer init
 
     # Pasos individuales para modificar el buildozer.spec
-    # Solo modificamos lo esencial de tu aplicación, el SDK/NDK/licencias ya están manejados por el contenedor.
     - name: Modify buildozer.spec - Title
       run: |
         sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec
@@ -63,13 +59,10 @@ jobs:
 
     - name: Modify buildozer.spec - Requirements
       run: |
-        # Aseguramos que los requisitos estén en el buildozer.spec
-        # No incluimos kivy ni python3 aquí, ya que el contenedor los proporciona.
         sed -i 's/^#*requirements = .*$/requirements = pyjnius,firebase-admin,google-generativeai,requests,pytz,plyer/' buildozer.spec
 
     - name: Modify buildozer.spec - Android NDK
       run: |
-        # El contenedor ya tiene un NDK compatible, pero lo forzamos a 25b si es necesario.
         sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec
     
     - name: Modify buildozer.spec - Android Architectures
@@ -80,13 +73,9 @@ jobs:
       run: |
         sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
 
-    # Eliminamos las líneas de android.accept_sdk_license, android.build_tools,
-    # android.sdk_path, android.ndk_path del buildozer.spec,
-    # ya que el contenedor se encarga de las licencias y las rutas del SDK/NDK.
-
     - name: Build Android APK
       run: |
-        buildozer android debug # ¡Solo este comando debería ser suficiente!
+        buildozer android debug
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
