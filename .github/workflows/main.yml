@@ -61,8 +61,10 @@ jobs:
         # ¡IMPORTANTE! Hemos añadido versiones específicas para httpx, idna, charset_normalizer Y requests
         pip install kivy kivymd python-for-android buildozer plyer firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0
 
-    # Eliminamos la configuración manual de JAVA_HOME y las rutas de Android SDK/NDK
-    # La acción 'setup-java' y Buildozer se encargarán de esto internamente.
+    - name: Clean .buildozer directory # ¡NUEVO PASO CLAVE! Borrar .buildozer por completo
+      run: |
+        rm -rf .buildozer
+        echo ".buildozer directory eliminado para asegurar un inicio limpio."
 
     - name: Clean buildozer.spec if it exists
       run: |
@@ -111,13 +113,13 @@ jobs:
       run: |
         sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
 
-    - name: Modify buildozer.spec - Accept SDK License # ¡NUEVO! Aceptar licencias en buildozer.spec
+    - name: Modify buildozer.spec - Accept SDK License # ¡MEJORADO!
       run: |
-        sed -i 's/^#*android.accept_sdk_license = .*$/android.accept_sdk_license = True/' buildozer.spec
+        sed -i '/^#*android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec
     
-    - name: Modify buildozer.spec - Android Build Tools Version # ¡NUEVO! Especificar versión de build-tools
+    - name: Modify buildozer.spec - Android Build Tools Version # ¡MEJORADO!
       run: |
-        sed -i 's/^#*android.build_tools = .*$/android.build_tools = 33.0.0/' buildozer.spec
+        sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec
 
 
     - name: Update Python for Android toolchain
