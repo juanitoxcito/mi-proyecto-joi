@@ -119,8 +119,6 @@ jobs:
 
     - name: Modify buildozer.spec - Accept SDK License # ¡CRUCIAL! Asegurarse de que esta línea esté bien configurada
       run: |
-        # Usamos 'grep -q' para verificar si la línea existe. Si no, la añadimos.
-        # Si existe, la reemplazamos.
         if ! grep -q '^android.accept_sdk_license =' buildozer.spec; then
           echo 'android.accept_sdk_license = True' >> buildozer.spec
         else
@@ -135,8 +133,22 @@ jobs:
           sed -i '/^android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec
         fi
 
-    # ELIMINAMOS android.sdk_path y android.ndk_path de buildozer.spec.
-    # Dejaremos que Buildozer los gestione internamente.
+    - name: Modify buildozer.spec - Android SDK Path # ¡REINTRODUCIDO Y APUNTANDO A LA RUTA INTERNA DE BUILDOZER!
+      run: |
+        if ! grep -q '^android.sdk_path =' buildozer.spec; then
+          echo 'android.sdk_path = /home/runner/.buildozer/android/platform/android-sdk' >> buildozer.spec
+        else
+          sed -i '/^android.sdk_path =/c\android.sdk_path = /home/runner/.buildozer/android/platform/android-sdk' buildozer.spec
+        fi
+
+    - name: Modify buildozer.spec - Android NDK Path # ¡REINTRODUCIDO Y APUNTANDO A LA RUTA INTERNA DE BUILDOZER!
+      run: |
+        if ! grep -q '^android.ndk_path =' buildozer.spec; then
+          echo 'android.ndk_path = /home/runner/.buildozer/android/platform/android-ndk-r25b' >> buildozer.spec
+        else
+          sed -i '/^android.ndk_path =/c\android.ndk_path = /home/runner/.buildozer/android/platform/android-ndk-r25b' buildozer.spec
+        fi
+
 
     - name: Update Python for Android toolchain
       run: |
