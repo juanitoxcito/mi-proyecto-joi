@@ -24,19 +24,22 @@ jobs:
         distribution: 'temurin' # Distribución de Java
         java-version: '17' # Versión de Java
 
-    - name: Download and setup Android Command-Line Tools and SDK Components # ¡NUEVO PASO CLAVE!
+    - name: Download and setup Android Command-Line Tools and SDK Components
       run: |
         ANDROID_SDK_ROOT_PATH="/usr/local/lib/android/sdk"
         mkdir -p "$ANDROID_SDK_ROOT_PATH"
         
         # Descargar la última versión de las herramientas de línea de comandos (cmdline-tools)
-        # Usamos la versión 10.0 que es compatible con Java 17
         CMDLINE_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip"
         CMDLINE_TOOLS_DIR="$ANDROID_SDK_ROOT_PATH/cmdline-tools"
         mkdir -p "$CMDLINE_TOOLS_DIR"
         
         wget -q "$CMDLINE_TOOLS_URL" -O cmdline-tools.zip
         unzip -q cmdline-tools.zip -d "$CMDLINE_TOOLS_DIR"
+        
+        # ¡NUEVO! Limpiar la carpeta 'latest' antes de mover los archivos
+        rm -rf "$CMDLINE_TOOLS_DIR"/latest
+        mkdir -p "$CMDLINE_TOOLS_DIR"/latest # Recrear la carpeta vacía
         
         # Mover el contenido descomprimido a la carpeta 'latest'
         mv "$CMDLINE_TOOLS_DIR"/cmdline-tools/* "$CMDLINE_TOOLS_DIR"/latest
@@ -84,7 +87,7 @@ jobs:
             autotools-dev
         pip install --upgrade pip
         pip install cython==0.29.36 pyjnius==1.4.2
-        # ¡IMPORTANTE! Hemos añadido versiones específicas para httpx, idna, charset_normalizer Y requests
+        # ¡IMPORTANTES! Versiones específicas para httpx, idna, charset_normalizer Y requests
         pip install kivy kivymd python-for-android buildozer plyer firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0
 
     - name: Clean .buildozer directory
@@ -139,16 +142,21 @@ jobs:
       run: |
         sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
 
-    - name: Modify buildozer.spec - Accept SDK License # Mantenemos esta línea como doble seguridad
+    - name: Modify buildozer.spec - Accept SDK License
       run: |
         sed -i '/^#*android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec
     
-    - name: Modify buildozer.spec - Android Build Tools Version # Mantenemos esta línea
+    - name: Modify buildozer.spec - Android Build Tools Version
       run: |
         sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec
 
-    # Eliminamos las rutas explícitas de SDK/NDK de buildozer.spec para que Buildozer las gestione internamente
-    # o las encuentre a través de las variables de entorno que configuramos manualmente.
+    - name: Modify buildozer.spec - Android SDK Path
+      run: |
+        sed -i '/^#*android.sdk_path =/c\android.sdk_path = /usr/local/lib/android/sdk' buildozer.spec
+
+    - name: Modify buildozer.spec - Android NDK Path
+      run: |
+        sed -i '/^#*android.ndk_path =/c\android.ndk_path = /usr/local/lib/android/sdk/ndk/25.2.9519653' buildozer.spec
 
 
     - name: Update Python for Android toolchain
