@@ -7,36 +7,42 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest # Todavía necesitamos un runner de Ubuntu para ejecutar el contenedor
-    container: kivy/buildozer:stable # ¡CAMBIO CLAVE! Usamos la etiqueta 'stable'
+    runs-on: ubuntu-latest # Usamos un runner de Ubuntu
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4 # Descarga tu código del repositorio (dentro del contenedor)
+      uses: actions/checkout@v4 # Descarga tu código del repositorio
 
-    - name: Install Python dependencies (if not already in container)
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10' # Usamos Python 3.10
+
+    - name: Install Python dependencies
       run: |
-        # Kivy y Buildozer ya están en el contenedor.
-        # Solo instalamos las dependencias específicas de tu proyecto si no están.
         pip install --upgrade pip
+        # Instalamos solo las dependencias de Python que no son parte de Kivy/Buildozer base
         pip install pyjnius==1.4.2 firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0 pytz plyer
 
-    - name: Clean .buildozer directory
+    # Eliminamos todos los pasos manuales de configuración de Java, SDK, NDK, y Docker pull
+    # La acción 'ArtemSBulgakov/buildozer-action' se encarga de todo eso.
+
+    - name: Clean .buildozer directory (precautionary)
       run: |
         rm -rf .buildozer
         echo ".buildozer directory eliminado para asegurar un inicio limpio."
 
-    - name: Clean buildozer.spec if it exists
+    - name: Clean buildozer.spec if it exists (precautionary)
       run: |
         if [ -f buildozer.spec ]; then
           rm buildozer.spec
           echo "buildozer.spec eliminado para asegurar un inicio limpio."
         fi
 
-    - name: Initialize Buildozer
+    - name: Initialize Buildozer (if not already done)
       run: buildozer init
 
-    # Pasos individuales para modificar el buildozer.spec
+    # Pasos para modificar el buildozer.spec
     - name: Modify buildozer.spec - Title
       run: |
         sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec
@@ -59,6 +65,8 @@ jobs:
 
     - name: Modify buildozer.spec - Requirements
       run: |
+        # Aseguramos que los requisitos estén en el buildozer.spec
+        # La acción ya maneja kivy y python3
         sed -i 's/^#*requirements = .*$/requirements = pyjnius,firebase-admin,google-generativeai,requests,pytz,plyer/' buildozer.spec
 
     - name: Modify buildozer.spec - Android NDK
@@ -73,9 +81,28 @@ jobs:
       run: |
         sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
 
-    - name: Build Android APK
+    - name: Modify buildozer.spec - Accept SDK License
       run: |
-        buildozer android debug
+        if ! grep -q '^android.accept_sdk_license =' buildozer.spec; then
+          echo 'android.accept_sdk_license = True' >> buildozer.spec
+        else
+          sed -i '/^android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec
+        fi
+    
+    - name: Modify buildozer.spec - Android Build Tools Version
+      run: |
+        if ! grep -q '^android.build_tools =' buildozer.spec; then
+          echo 'android.build_tools = 33.0.0' >> buildozer.spec
+        else
+          sed -i '/^android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec
+        fi
+
+    - name: Build with Buildozer Action # ¡NUEVO Y CLAVE! Usamos la acción dedicada
+      uses: ArtemSBulgakov/buildozer-action@v1
+      with:
+        command: buildozer android debug # El comando que Buildozer ejecutará
+        # buildozer_version: stable # Opcional, si queremos una versión específica de Buildozer
+        # workdir: . # Si tu buildozer.spec no está en la raíz del repo
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
