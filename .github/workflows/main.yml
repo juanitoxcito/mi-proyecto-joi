@@ -24,29 +24,27 @@ jobs:
         # Instalamos solo las dependencias de Python que no son parte de Kivy/Buildozer base
         pip install pyjnius==1.4.2 firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0 pytz plyer
 
-    # Eliminamos todos los pasos manuales de configuración de Java, SDK, NDK, Docker pull.
+    # Eliminamos todos los pasos manuales de configuración de Java, SDK, NDK, Docker pull,
+    # y la inicialización manual del buildozer.spec.
 
     - name: Clean .buildozer directory (precautionary)
       run: |
         rm -rf .buildozer
         echo ".buildozer directory eliminado para asegurar un inicio limpio."
 
-    - name: Clean buildozer.spec if it exists
+    - name: Clean buildozer.spec if it exists (precautionary)
       run: |
         if [ -f buildozer.spec ]; then
           rm buildozer.spec
           echo "buildozer.spec eliminado para asegurar un inicio limpio."
         fi
 
-    - name: Initialize Buildozer # ¡REINTRODUCIDO! Para crear el buildozer.spec
-      run: buildozer init
-
     - name: Build with Buildozer Action # Usamos la acción dedicada con variables de entorno
       uses: ArtemSBulgakov/buildozer-action@v1
       with:
-        command: buildozer android debug # El comando que Buildozer ejecutará
+        # ¡CAMBIO CLAVE! Ejecutamos buildozer init y luego buildozer android debug en el mismo comando
+        command: buildozer init && buildozer android debug
         buildozer_version: stable # Usar una versión estable de Buildozer
-        # Eliminamos buildozer_init: true ya que no es un parámetro válido
       env: # Aquí pasamos las configuraciones del buildozer.spec como variables de entorno
         APP_TITLE: JoiApp
         APP_PACKAGE_NAME: joi
