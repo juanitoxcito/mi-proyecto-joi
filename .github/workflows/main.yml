@@ -24,85 +24,30 @@ jobs:
         # Instalamos solo las dependencias de Python que no son parte de Kivy/Buildozer base
         pip install pyjnius==1.4.2 firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0 pytz plyer
 
-    # Eliminamos todos los pasos manuales de configuración de Java, SDK, NDK, y Docker pull
+    # Eliminamos todos los pasos manuales de configuración de Java, SDK, NDK, Docker pull,
+    # buildozer init y las modificaciones con 'sed'.
     # La acción 'ArtemSBulgakov/buildozer-action' se encarga de todo eso.
 
-    - name: Clean .buildozer directory (precautionary)
-      run: |
-        rm -rf .buildozer
-        echo ".buildozer directory eliminado para asegurar un inicio limpio."
-
-    - name: Clean buildozer.spec if it exists (precautionary)
-      run: |
-        if [ -f buildozer.spec ]; then
-          rm buildozer.spec
-          echo "buildozer.spec eliminado para asegurar un inicio limpio."
-        fi
-
-    - name: Initialize Buildozer (if not already done)
-      run: buildozer init
-
-    # Pasos para modificar el buildozer.spec
-    - name: Modify buildozer.spec - Title
-      run: |
-        sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec
-
-    - name: Modify buildozer.spec - Package Name
-      run: |
-        sed -i 's/^#*package.name = .*$/package.name = joi/' buildozer.spec
-
-    - name: Modify buildozer.spec - Package Domain
-      run: |
-        sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec
-
-    - name: Modify buildozer.spec - Android API
-      run: |
-        sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec
-
-    - name: Modify buildozer.spec - Android Min API
-      run: |
-        sed -i 's/^#*android.minapi = .*$/android.minapi = 24/' buildozer.spec
-
-    - name: Modify buildozer.spec - Requirements
-      run: |
-        # Aseguramos que los requisitos estén en el buildozer.spec
-        # La acción ya maneja kivy y python3
-        sed -i 's/^#*requirements = .*$/requirements = pyjnius,firebase-admin,google-generativeai,requests,pytz,plyer/' buildozer.spec
-
-    - name: Modify buildozer.spec - Android NDK
-      run: |
-        sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec
-    
-    - name: Modify buildozer.spec - Android Architectures
-      run: |
-        sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec
-
-    - name: Modify buildozer.spec - Log Level
-      run: |
-        sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
-
-    - name: Modify buildozer.spec - Accept SDK License
-      run: |
-        if ! grep -q '^android.accept_sdk_license =' buildozer.spec; then
-          echo 'android.accept_sdk_license = True' >> buildozer.spec
-        else
-          sed -i '/^android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec
-        fi
-    
-    - name: Modify buildozer.spec - Android Build Tools Version
-      run: |
-        if ! grep -q '^android.build_tools =' buildozer.spec; then
-          echo 'android.build_tools = 33.0.0' >> buildozer.spec
-        else
-          sed -i '/^android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec
-        fi
-
-    - name: Build with Buildozer Action # ¡NUEVO Y CLAVE! Usamos la acción dedicada
+    - name: Build with Buildozer Action # ¡NUEVO Y CLAVE! Usamos la acción dedicada con variables de entorno
       uses: ArtemSBulgakov/buildozer-action@v1
       with:
         command: buildozer android debug # El comando que Buildozer ejecutará
         # buildozer_version: stable # Opcional, si queremos una versión específica de Buildozer
         # workdir: . # Si tu buildozer.spec no está en la raíz del repo
+      env: # ¡Aquí pasamos las configuraciones del buildozer.spec como variables de entorno!
+        APP_TITLE: JoiApp
+        APP_PACKAGE_NAME: joi
+        APP_PACKAGE_DOMAIN: org.joi
+        ANDROID_API: 33
+        ANDROID_MINAPI: 24
+        # Requisitos: la acción Buildozer ya incluye python3 y kivy.
+        # Solo listamos los requisitos adicionales de tu proyecto.
+        APP_REQUIREMENTS: pyjnius,firebase-admin,google-generativeai,requests,pytz,plyer
+        ANDROID_NDK: 25b
+        ANDROID_ARCHS: arm64-v8a,armeabi-v7a
+        APP_LOG_LEVEL: 2
+        ANDROID_ACCEPT_SDK_LICENSE: True # Aceptar licencias automáticamente
+        ANDROID_BUILD_TOOLS: 33.0.0 # Forzar la versión 33.0.0 de las herramientas de compilación
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
