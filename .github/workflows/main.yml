@@ -125,29 +125,16 @@ jobs:
           sed -i '/^android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec
         fi
     
-    - name: Modify buildozer.spec - Android Build Tools Version # ¡CRUCIAL! Asegurarse de que esta línea esté bien configurada
+    - name: Modify buildozer.spec - Android Build Tools Version # ¡CRUCIAL! Forzar la versión 30.0.3
       run: |
         if ! grep -q '^android.build_tools =' buildozer.spec; then
-          echo 'android.build_tools = 33.0.0' >> buildozer.spec
+          echo 'android.build_tools = 30.0.3' >> buildozer.spec
         else
-          sed -i '/^android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec
+          sed -i '/^android.build_tools =/c\android.build_tools = 30.0.3' buildozer.spec
         fi
 
-    - name: Modify buildozer.spec - Android SDK Path # ¡REINTRODUCIDO Y APUNTANDO A LA RUTA INTERNA DE BUILDOZER!
-      run: |
-        if ! grep -q '^android.sdk_path =' buildozer.spec; then
-          echo 'android.sdk_path = /home/runner/.buildozer/android/platform/android-sdk' >> buildozer.spec
-        else
-          sed -i '/^android.sdk_path =/c\android.sdk_path = /home/runner/.buildozer/android/platform/android-sdk' buildozer.spec
-        fi
-
-    - name: Modify buildozer.spec - Android NDK Path # ¡REINTRODUCIDO Y APUNTANDO A LA RUTA INTERNA DE BUILDOZER!
-      run: |
-        if ! grep -q '^android.ndk_path =' buildozer.spec; then
-          echo 'android.ndk_path = /home/runner/.buildozer/android/platform/android-ndk-r25b' >> buildozer.spec
-        else
-          sed -i '/^android.ndk_path =/c\android.ndk_path = /home/runner/.buildozer/android/platform/android-ndk-r25b' buildozer.spec
-        fi
+    # ELIMINAMOS android.sdk_path y android.ndk_path de buildozer.spec.
+    # Dejaremos que Buildozer los gestione internamente en sus rutas por defecto.
 
 
     - name: Update Python for Android toolchain
