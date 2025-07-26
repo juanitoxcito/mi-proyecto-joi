@@ -101,9 +101,9 @@ jobs:
       run: |
         sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,firebase-admin,google-generativeai,requests,pytz,plyer/' buildozer.spec
 
-    - name: Modify buildozer.spec - Android NDK
+    - name: Modify buildozer.spec - Android NDK # Volvemos a NDK 25b
       run: |
-        sed -i 's/^#*android.ndk = .*$/android.ndk = 23b/' buildozer.spec
+        sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec
     
     - name: Modify buildozer.spec - Android Architectures
       run: |
@@ -113,13 +113,21 @@ jobs:
       run: |
         sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
 
-    - name: Modify buildozer.spec - Accept SDK License # ¡MEJORADO!
+    - name: Modify buildozer.spec - Accept SDK License
       run: |
         sed -i '/^#*android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec
     
-    - name: Modify buildozer.spec - Android Build Tools Version # ¡MEJORADO!
+    - name: Modify buildozer.spec - Android Build Tools Version
       run: |
         sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec
+
+    - name: Modify buildozer.spec - Android SDK Path # ¡NUEVO! Ruta explícita para el SDK de Buildozer
+      run: |
+        sed -i '/^#*android.sdk_path =/c\android.sdk_path = /home/runner/.buildozer/android/platform/android-sdk' buildozer.spec
+
+    - name: Modify buildozer.spec - Android NDK Path # ¡NUEVO! Ruta explícita para el NDK de Buildozer
+      run: |
+        sed -i '/^#*android.ndk_path =/c\android.ndk_path = /home/runner/.buildozer/android/platform/android-ndk-r25b' buildozer.spec
 
 
     - name: Update Python for Android toolchain
