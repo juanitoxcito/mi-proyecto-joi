@@ -18,11 +18,16 @@ jobs:
       with:
         python-version: '3.10' # Usamos Python 3.10, que es compatible con Kivy y Buildozer
 
+    - name: Set up Java 17 # ¡NUEVO! Usamos la acción oficial para Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin' # Distribución de Java
+        java-version: '17' # Versión de Java
+
     - name: Install Buildozer and Kivy dependencies
       run: |
         sudo apt-get update -y
         sudo apt-get install -y \
-            openjdk-11-jdk \
             build-essential \
             libffi-dev \
             git \
@@ -56,23 +61,8 @@ jobs:
         # ¡IMPORTANTE! Hemos añadido versiones específicas para httpx, idna, charset_normalizer Y requests
         pip install kivy kivymd python-for-android buildozer plyer firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0
 
-    - name: Configure JAVA_HOME and Android SDK/NDK paths
-      run: |
-        echo "JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64" >> $GITHUB_ENV # Apuntamos a Java 17
-        # Configurar las variables de entorno que Buildozer espera para el SDK/NDK
-        echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-        echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-        echo "ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/23.2.8568313" >> $GITHUB_ENV # NDK 23b (ruta común)
-        # Añadir sdkmanager al PATH para ejecución directa
-        echo "/usr/local/lib/android/sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
-
-    - name: Install Android SDK components and accept licenses # ¡REINTRODUCIDO y AJUSTADO!
-      run: |
-        # Instalar platform-tools, build-tools;33.0.0 y platforms;android-33
-        # Usando 'yes |' para aceptar licencias automáticamente
-        yes | sdkmanager "platform-tools" "build-tools;33.0.0" "platforms;android-33"
-        # Aceptar todas las licencias del SDK de Android (redundante pero seguro)
-        yes | sdkmanager --licenses
+    # Eliminamos los pasos manuales de configuración de JAVA_HOME y de instalación/licencias del SDK.
+    # La acción 'setup-java' y Buildozer se encargarán de esto.
 
     - name: Clean buildozer.spec if it exists
       run: |
