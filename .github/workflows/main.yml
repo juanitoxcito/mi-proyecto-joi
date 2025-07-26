@@ -18,7 +18,7 @@ jobs:
       with:
         python-version: '3.10' # Usamos Python 3.10, que es compatible con Kivy y Buildozer
 
-    - name: Set up Java 17 # ¡NUEVO! Usamos la acción oficial para Java
+    - name: Set up Java 17
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin' # Distribución de Java
@@ -61,8 +61,8 @@ jobs:
         # ¡IMPORTANTE! Hemos añadido versiones específicas para httpx, idna, charset_normalizer Y requests
         pip install kivy kivymd python-for-android buildozer plyer firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0
 
-    # Eliminamos los pasos manuales de configuración de JAVA_HOME y de instalación/licencias del SDK.
-    # La acción 'setup-java' y Buildozer se encargarán de esto.
+    # Eliminamos la configuración manual de JAVA_HOME y las rutas de Android SDK/NDK
+    # La acción 'setup-java' y Buildozer se encargarán de esto internamente.
 
     - name: Clean buildozer.spec if it exists
       run: |
@@ -110,6 +110,15 @@ jobs:
     - name: Modify buildozer.spec - Log Level
       run: |
         sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
+
+    - name: Modify buildozer.spec - Accept SDK License # ¡NUEVO! Aceptar licencias en buildozer.spec
+      run: |
+        sed -i 's/^#*android.accept_sdk_license = .*$/android.accept_sdk_license = True/' buildozer.spec
+    
+    - name: Modify buildozer.spec - Android Build Tools Version # ¡NUEVO! Especificar versión de build-tools
+      run: |
+        sed -i 's/^#*android.build_tools = .*$/android.build_tools = 33.0.0/' buildozer.spec
+
 
     - name: Update Python for Android toolchain
       run: |
