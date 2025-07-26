@@ -25,7 +25,7 @@ jobs:
         pip install pyjnius==1.4.2 firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0 pytz plyer
 
     # Eliminamos todos los pasos manuales de configuración de Java, SDK, NDK, Docker pull,
-    # y las modificaciones con 'sed'.
+    # y la creación manual del buildozer.spec.
     # La acción 'ArtemSBulgakov/buildozer-action' se encarga de todo eso.
 
     - name: Clean .buildozer directory (precautionary)
@@ -33,21 +33,19 @@ jobs:
         rm -rf .buildozer
         echo ".buildozer directory eliminado para asegurar un inicio limpio."
 
-    - name: Create minimal buildozer.spec file # ¡NUEVO PASO CLAVE!
+    - name: Clean buildozer.spec if it exists (precautionary)
       run: |
-        echo "[app]" > buildozer.spec
-        echo "title = My App" >> buildozer.spec
-        echo "package.name = myapp" >> buildozer.spec
-        echo "package.domain = org.test" >> buildozer.spec
-        echo "" >> buildozer.spec
-        echo "[buildozer]" >> buildozer.spec
-        echo "warn_on_root = 1" >> buildozer.spec
-        echo "Minimal buildozer.spec created."
+        if [ -f buildozer.spec ]; then
+          rm buildozer.spec
+          echo "buildozer.spec eliminado para asegurar un inicio limpio."
+        fi
 
     - name: Build with Buildozer Action # Usamos la acción dedicada con variables de entorno
       uses: ArtemSBulgakov/buildozer-action@v1
       with:
         command: buildozer android debug # El comando que Buildozer ejecutará
+        buildozer_init: true # ¡NUEVO! La acción inicializará el buildozer.spec
+        buildozer_version: stable # ¡NUEVO! Usar una versión estable de Buildozer
       env: # Aquí pasamos las configuraciones del buildozer.spec como variables de entorno
         APP_TITLE: JoiApp
         APP_PACKAGE_NAME: joi
