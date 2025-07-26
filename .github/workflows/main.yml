@@ -24,13 +24,31 @@ jobs:
         distribution: 'temurin' # Distribución de Java
         java-version: '17' # Versión de Java
 
-    - name: Install Android SDK and NDK via dedicated action
-      uses: android-actions/setup-android@v2 # Acción para configurar el SDK/NDK
-      with:
-        api-level: 33 # Nivel de API de Android
-        build-tools: 33.0.0 # Versión de las herramientas de compilación
-        ndk: 25.2.9519653 # Versión específica del NDK (compatible con 25b)
-        accept-licenses: true # Aceptar licencias automáticamente
+    - name: Download and setup Android Command-Line Tools and SDK Components # ¡NUEVO PASO CLAVE!
+      run: |
+        ANDROID_SDK_ROOT_PATH="/usr/local/lib/android/sdk"
+        mkdir -p "$ANDROID_SDK_ROOT_PATH"
+        
+        # Descargar la última versión de las herramientas de línea de comandos (cmdline-tools)
+        # Usamos la versión 10.0 que es compatible con Java 17
+        CMDLINE_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip"
+        CMDLINE_TOOLS_DIR="$ANDROID_SDK_ROOT_PATH/cmdline-tools"
+        mkdir -p "$CMDLINE_TOOLS_DIR"
+        
+        wget -q "$CMDLINE_TOOLS_URL" -O cmdline-tools.zip
+        unzip -q cmdline-tools.zip -d "$CMDLINE_TOOLS_DIR"
+        
+        # Mover el contenido descomprimido a la carpeta 'latest'
+        mv "$CMDLINE_TOOLS_DIR"/cmdline-tools/* "$CMDLINE_TOOLS_DIR"/latest
+        
+        # Configurar ANDROID_SDK_ROOT y añadir sdkmanager al PATH
+        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT_PATH" >> $GITHUB_ENV
+        echo "$ANDROID_SDK_ROOT_PATH/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        
+        # Instalar platform-tools, build-tools;33.0.0 y platforms;android-33
+        yes | sdkmanager "platform-tools" "build-tools;33.0.0" "platforms;android-33"
+        # Aceptar licencias (esto es crucial y el 'yes |' lo automatiza)
+        yes | sdkmanager --licenses
 
     - name: Install Buildozer and Kivy dependencies
       run: |
@@ -121,21 +139,16 @@ jobs:
       run: |
         sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
 
-    - name: Modify buildozer.spec - Accept SDK License
+    - name: Modify buildozer.spec - Accept SDK License # Mantenemos esta línea como doble seguridad
       run: |
         sed -i '/^#*android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec
     
-    - name: Modify buildozer.spec - Android Build Tools Version
+    - name: Modify buildozer.spec - Android Build Tools Version # Mantenemos esta línea
       run: |
         sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec
 
-    - name: Modify buildozer.spec - Android SDK Path # ¡NUEVO! Ruta explícita para el SDK
-      run: |
-        sed -i '/^#*android.sdk_path =/c\android.sdk_path = /usr/local/lib/android/sdk' buildozer.spec
-
-    - name: Modify buildozer.spec - Android NDK Path # ¡NUEVO! Ruta explícita para el NDK
-      run: |
-        sed -i '/^#*android.ndk_path =/c\android.ndk_path = /usr/local/lib/android/sdk/ndk/25.2.9519653' buildozer.spec
+    # Eliminamos las rutas explícitas de SDK/NDK de buildozer.spec para que Buildozer las gestione internamente
+    # o las encuentre a través de las variables de entorno que configuramos manualmente.
 
 
     - name: Update Python for Android toolchain
