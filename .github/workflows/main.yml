@@ -7,27 +7,28 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest # Usamos un runner estándar de Ubuntu
-    container: kivy/python-for-android # Usamos este contenedor (sin 'user: root' aquí)
-
-    env: # Establecemos HOME para todo el trabajo para evitar problemas de permisos de checkout
-      HOME: /tmp
+    runs-on: ubuntu-latest # ¡CLAVE! Ejecutamos en un runner estándar de Ubuntu
+    # Eliminamos el bloque 'container:' de aquí para evitar conflictos de permisos
 
     steps:
-    - name: Checkout code
+    - name: Checkout code # Esta acción ahora se ejecuta en el runner de Ubuntu sin problemas de permisos
       uses: actions/checkout@v4
 
-    - name: Install Python dependencies (on host runner, if needed for buildozer init)
+    - name: Install Python dependencies (on host runner, if needed for buildozer)
       run: |
-        echo "No Python dependencies installed directly on host for this setup. All will be in Docker."
+        # Instalamos Buildozer en el host para que el comando 'buildozer' esté disponible
+        # para el 'docker run' si es necesario, aunque se ejecutará dentro del contenedor.
+        # Esto es más bien una precaución.
+        pip install --upgrade pip
+        pip install buildozer
 
-    - name: Build Android APK using Docker Container # Todo en un solo comando docker run
+    - name: Build Android APK using Docker Container # ¡CLAVE! Lanzamos el contenedor manualmente
       run: |
         # Definimos el directorio de trabajo dentro del contenedor
         CONTAINER_WORKDIR="/app"
 
         # Ejecutamos el contenedor Docker con los permisos de root
-        # Montamos el directorio actual del repositorio en /app dentro del contenedor
+        # Montamos el directorio actual del repositorio (que ya fue descargado) en /app dentro del contenedor
         # Establecemos HOME a /tmp dentro del contenedor para evitar problemas de permisos
         # Ejecutamos todos los comandos de Buildozer secuencialmente
         docker run --rm \
@@ -40,6 +41,7 @@ jobs:
             export PATH=\"\$HOME/.local/bin:\$PATH\" && \
             echo 'Iniciando Buildozer y compilando Joi...' && \
             pip install --upgrade pip && \
+            # buildozer ya está instalado en el host, pero lo reinstalamos en el contenedor para asegurar
             pip install buildozer && \
             pip install pyjnius==1.4.2 firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0 pytz plyer && \
             rm -rf .buildozer && \
