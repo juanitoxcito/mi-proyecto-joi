@@ -8,9 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest # Usamos un runner estándar de Ubuntu
-    container:
-      image: kivy/python-for-android # Usamos este contenedor
-      user: root # Mantenemos el usuario root para permisos completos
+    container: kivy/python-for-android # Usamos este contenedor (sin 'user: root' aquí)
 
     env: # Establecemos HOME para todo el trabajo para evitar problemas de permisos de checkout
       HOME: /tmp
@@ -39,11 +37,10 @@ jobs:
           -e HOME=/tmp \
           kivy/python-for-android \
           bash -c " \
-            # ¡NUEVO Y CLAVE! Aseguramos que ~/.local/bin esté en el PATH
             export PATH=\"\$HOME/.local/bin:\$PATH\" && \
             echo 'Iniciando Buildozer y compilando Joi...' && \
             pip install --upgrade pip && \
-            pip install buildozer && \ # ¡NUEVO Y CLAVE! Instalamos buildozer
+            pip install buildozer && \
             pip install pyjnius==1.4.2 firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0 pytz plyer && \
             rm -rf .buildozer && \
             if [ -f buildozer.spec ]; then rm buildozer.spec; fi && \
