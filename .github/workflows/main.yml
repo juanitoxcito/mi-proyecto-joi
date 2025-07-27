@@ -8,13 +8,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest # Usamos un runner de Ubuntu
-    container:
-      image: kivy/python-for-android # Usamos este contenedor
-      user: root # ¡NUEVO Y CLAVE! Ejecutamos el contenedor como usuario root para resolver problemas de permisos
+    container: kivy/python-for-android # Usamos este contenedor
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4 # Descarga tu código del repositorio (dentro del contenedor)
+    - name: Clone repository inside container # ¡NUEVO PASO CLAVE! Clonamos el repo manualmente
+      run: |
+        git clone https://github.com/${{ github.repository }}.git /github/workspace
+        cd /github/workspace
+        git checkout ${{ github.ref_name }} # Aseguramos estar en la rama correcta
+        # Si el repositorio fuera privado, necesitarías un token:
+        # git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git /github/workspace
 
     - name: Install Python dependencies (specific to your app)
       run: |
