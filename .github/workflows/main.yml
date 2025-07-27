@@ -23,13 +23,7 @@ jobs:
 
     - name: Build Android APK using Docker Container # Todo en un solo comando docker run
       run: |
-        # Definimos el directorio de trabajo dentro del contenedor
         CONTAINER_WORKDIR="/app"
-
-        # Ejecutamos el contenedor Docker con los permisos de root
-        # Montamos el directorio actual del repositorio en /app dentro del contenedor
-        # Establecemos HOME a /tmp dentro del contenedor para evitar problemas de permisos
-        # Ejecutamos todos los comandos de Buildozer secuencialmente
         docker run --rm \
           -v "$(pwd):${CONTAINER_WORKDIR}" \
           -w "${CONTAINER_WORKDIR}" \
@@ -38,16 +32,14 @@ jobs:
           kivy/python-for-android \
           bash -c " \
             export PATH=\"\$HOME/.local/bin:\$PATH\" && \
-            export BUILDOZER_ALLOW_ROOT=1 && \ # Mantenemos la variable de entorno
+            export BUILDOZER_ALLOW_ROOT=1 && \
             echo 'Iniciando Buildozer y compilando Joi...' && \
             pip install --upgrade pip && \
             pip install buildozer && \
             pip install pyjnius==1.4.2 firebase-admin google-generativeai requests pytz plyer proto-plus==1.26.0 httpcore==1.0.8 h11==0.14.0 && \
             rm -rf .buildozer && \
             if [ -f buildozer.spec ]; then rm buildozer.spec; fi && \
-            buildozer init --ignore-root && \ # ¡NUEVO! Reincorporamos --ignore-root
-            sleep 5 && \ # ¡NUEVO! Pequeña pausa para asegurar que el archivo se escriba
-            ls -l buildozer.spec && \ # ¡NUEVO! Verificar si buildozer.spec existe
+            yes | buildozer init --ignore-root && \
             sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec && \
             sed -i 's/^#*package.name = .*$/package.name = joi/' buildozer.spec && \
             sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec && \
@@ -59,7 +51,7 @@ jobs:
             sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec && \
             sed -i '/^#*android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec && \
             sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec && \
-            buildozer android debug --ignore-root && \ # Reincorporamos --ignore-root
+            yes | buildozer android debug --ignore-root && \
             echo 'Compilación de Joi completada.' \
           "
 
