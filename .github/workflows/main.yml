@@ -41,22 +41,24 @@ jobs:
             echo 'Iniciando Buildozer y compilando Joi...' && \
             pip install --upgrade pip && \
             pip install buildozer && \
-            pip install pyjnius==1.4.2 firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests-2.31.0 pytz plyer && \
+            # ¡CORRECCION CLAVE! Eliminamos la versión específica de requests
+            pip install pyjnius==1.4.2 firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests pytz plyer && \
             rm -rf .buildozer && \
             if [ -f buildozer.spec ]; then rm buildozer.spec; fi && \
-            buildozer init --ignore-root && \ # ¡NUEVO Y CLAVE! Ignoramos el prompt de root
+            buildozer init --ignore-root && \
             sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec && \
             sed -i 's/^#*package.name = .*$/package.name = joi/' buildozer.spec && \
             sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec && \
             sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec && \
             sed -i 's/^#*android.minapi = .*$/android.minapi = 24/' buildozer.spec && \
+            # ¡CORRECCION CLAVE! Eliminamos la versión específica de requests aquí también
             sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,firebase-admin,google-generativeai,requests,pytz,plyer/' buildozer.spec && \
             sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec && \
             sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec && \
             sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec && \
             sed -i '/^#*android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec && \
             sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec && \
-            buildozer android debug --ignore-root && \ # ¡NUEVO Y CLAVE! Ignoramos el prompt de root también aquí
+            buildozer android debug --ignore-root && \
             echo 'Compilación de Joi completada.' \
           "
 
