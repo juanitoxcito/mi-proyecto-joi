@@ -8,13 +8,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest # Usamos un runner de Ubuntu
-    container: kivy/python-for-android # ¡CORRECCION CLAVE! Sintaxis correcta para el contenedor
+    container: kivy/python-for-android # Usamos este contenedor
+    env: # ¡NUEVO Y CLAVE! Establecemos HOME para todo el trabajo
+      HOME: /tmp
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
-      env:
-        HOME: /tmp
+      uses: actions/checkout@v4 # La acción de checkout ahora usará /tmp como HOME
+      # Ya no necesitamos 'env: HOME: /tmp' aquí, porque está a nivel de job
 
     - name: Install Python dependencies (specific to your app)
       run: |
