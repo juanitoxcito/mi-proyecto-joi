@@ -8,22 +8,20 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest # Usamos un runner de Ubuntu
-    container: kivy/python-for-android # Usamos este contenedor
+    container:
+      image: kivy/python-for-android # Usamos este contenedor
+      user: root # ¡NUEVO Y CLAVE! Ejecutamos el contenedor como usuario root para resolver problemas de permisos
 
     steps:
-    - name: Clone repository inside container # ¡NUEVO PASO CLAVE! Clonamos el repo manualmente
+    - name: Clone repository inside container
       run: |
         git clone https://github.com/${{ github.repository }}.git /github/workspace
         cd /github/workspace
         git checkout ${{ github.ref_name }} # Aseguramos estar en la rama correcta
-        # Si el repositorio fuera privado, necesitarías un token:
-        # git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git /github/workspace
 
     - name: Install Python dependencies (specific to your app)
       run: |
         pip install --upgrade pip
-        # Kivy, Buildozer y python-for-android ya están en el contenedor.
-        # Solo instalamos las dependencias específicas de tu proyecto si no están.
         pip install pyjnius==1.4.2 firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0 pytz plyer
 
     - name: Clean .buildozer directory
