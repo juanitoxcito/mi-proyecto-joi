@@ -7,84 +7,57 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest # Usamos un runner de Ubuntu
-    container: kivy/python-for-android # Usamos este contenedor
-    env: # ¡NUEVO Y CLAVE! Establecemos HOME para todo el trabajo
-      HOME: /tmp
+    runs-on: ubuntu-latest # Volvemos a un runner estándar de Ubuntu (sin contenedor a nivel de job)
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4 # La acción de checkout ahora usará /tmp como HOME
-      # Ya no necesitamos 'env: HOME: /tmp' aquí, porque está a nivel de job
+    - name: Checkout code # La acción de checkout ahora debería funcionar sin problemas de permisos
+      uses: actions/checkout@v4
 
-    - name: Install Python dependencies (specific to your app)
+    - name: Install Python dependencies (on host runner, if needed for buildozer init)
       run: |
-        pip install --upgrade pip
-        pip install pyjnius==1.4.2 firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0 pytz plyer
+        # Aunque Buildozer se ejecutará en Docker, algunas herramientas básicas de Python
+        # pueden ser útiles para la configuración inicial o si Buildozer tuviera dependencias
+        # que necesiten ser pre-instaladas en el host para el init.
+        # En este caso, no son estrictamente necesarias aquí porque Buildozer se ejecuta en el contenedor.
+        # Las dependencias de tu app se instalarán dentro del contenedor.
+        echo "No Python dependencies installed directly on host for this setup."
 
-    - name: Clean .buildozer directory
+    - name: Build Android APK using Docker Container # ¡NUEVO Y CLAVE! Todo en un solo comando docker run
       run: |
-        rm -rf .buildozer
-        echo ".buildozer directory eliminado para asegurar un inicio limpio."
+        # Definimos el directorio de trabajo dentro del contenedor
+        CONTAINER_WORKDIR="/app"
 
-    - name: Clean buildozer.spec if it exists
-      run: |
-        if [ -f buildozer.spec ]; then
-          rm buildozer.spec
-          echo "buildozer.spec eliminado para asegurar un inicio limpio."
-        fi
-
-    - name: Initialize Buildozer
-      run: buildozer init
-
-    # Pasos individuales para modificar el buildozer.spec
-    - name: Modify buildozer.spec - Title
-      run: |
-        sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec
-
-    - name: Modify buildozer.spec - Package Name
-      run: |
-        sed -i 's/^#*package.name = .*$/package.name = joi/' buildozer.spec
-
-    - name: Modify buildozer.spec - Package Domain
-      run: |
-        sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec
-
-    - name: Modify buildozer.spec - Android API
-      run: |
-        sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec
-
-    - name: Modify buildozer.spec - Android Min API
-      run: |
-        sed -i 's/^#*android.minapi = .*$/android.minapi = 24/' buildozer.spec
-
-    - name: Modify buildozer.spec - Requirements
-      run: |
-        sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,firebase-admin,google-generativeai,requests,pytz,plyer/' buildozer.spec
-
-    - name: Modify buildozer.spec - Android NDK
-      run: |
-        sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec
-    
-    - name: Modify buildozer.spec - Android Architectures
-      run: |
-        sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec
-
-    - name: Modify buildozer.spec - Log Level
-      run: |
-        sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
-
-    - name: Modify buildozer.spec - Accept SDK License
-      run: |
-        sed -i '/^#*android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec
-    
-    - name: Modify buildozer.spec - Android Build Tools Version
-      run: |
-        sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec
-
-    - name: Build Android APK
-      run: |
-        buildozer android debug
+        # Ejecutamos el contenedor Docker con los permisos de root
+        # Montamos el directorio actual del repositorio en /app dentro del contenedor
+        # Establecemos HOME a /tmp dentro del contenedor para evitar problemas de permisos
+        # Ejecutamos todos los comandos de Buildozer secuencialmente
+        docker run --rm \
+          -v "$(pwd):${CONTAINER_WORKDIR}" \
+          -w "${CONTAINER_WORKDIR}" \
+          --user root \
+          -e HOME=/tmp \
+          kivy/python-for-android \
+          bash -c " \
+            echo 'Iniciando Buildozer y compilando Joi...' && \
+            pip install --upgrade pip && \
+            pip install pyjnius==1.4.2 firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0 pytz plyer && \
+            rm -rf .buildozer && \
+            if [ -f buildozer.spec ]; then rm buildozer.spec; fi && \
+            buildozer init && \
+            sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec && \
+            sed -i 's/^#*package.name = .*$/package.name = joi/' buildozer.spec && \
+            sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec && \
+            sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec && \
+            sed -i 's/^#*android.minapi = .*$/android.minapi = 24/' buildozer.spec && \
+            sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,firebase-admin,google-generativeai,requests,pytz,plyer/' buildozer.spec && \
+            sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec && \
+            sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec && \
+            sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec && \
+            sed -i '/^#*android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec && \
+            sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec && \
+            buildozer android debug && \
+            echo 'Compilación de Joi completada.' \
+          "
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
