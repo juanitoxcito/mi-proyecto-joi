@@ -36,18 +36,18 @@ jobs:
             echo 'Iniciando Buildozer y compilando Joi...' && \
             pip install --upgrade pip && \
             pip install buildozer && \
-            pip install pyjnius==1.4.2 firebase-admin google-generativeai requests pytz plyer proto-plus==1.26.0 httpcore==1.0.8 h11==0.14.0 cython && \
+            # ¡CORRECCION CLAVE! No instalamos cython aquí. Buildozer lo manejará.
+            pip install pyjnius==1.4.2 firebase-admin google-generativeai requests pytz plyer proto-plus==1.26.0 httpcore==1.0.8 h11==0.14.0 && \
             rm -rf .buildozer && \
             if [ -f buildozer.spec ]; then rm buildozer.spec; fi && \
             yes | buildozer init --ignore-root && \
             sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec && \
             sed -i 's/^#*package.name = .*$/package.name = joi/' buildozer.spec && \
             sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec && \
-            # ¡CORRECCION CLAVE! Cambiamos a API 21 para mayor compatibilidad
             sed -i 's/^#*android.api = .*$/android.api = 21/' buildozer.spec && \
-            # ¡CORRECCION CLAVE! Cambiamos a MINAPI 21 para mayor compatibilidad
             sed -i 's/^#*android.minapi = .*$/android.minapi = 21/' buildozer.spec && \
-            sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,firebase-admin,google-generativeai,requests,pytz,plyer/' buildozer.spec && \
+            # ¡CORRECCION CLAVE! Añadimos cython a los requirements de buildozer.spec
+            sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,firebase-admin,google-generativeai,requests,pytz,plyer,cython/' buildozer.spec && \
             sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec && \
             sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec && \
             sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec && \
