@@ -8,20 +8,19 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest # Usamos un runner de Ubuntu
-    container: kivy/python-for-android # ¡NUEVO Y CLAVE! Usamos este contenedor
+    container:
+      image: kivy/python-for-android # Usamos este contenedor
+      user: root # ¡NUEVO Y CLAVE! Ejecutamos el contenedor como usuario root para resolver problemas de permisos
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4 # Descarga tu código del repositorio (dentro del contenedor)
 
-    # Eliminamos todos los pasos de instalación de Python, Java, y dependencias de Buildozer
-    # porque el contenedor 'kivy/python-for-android' ya los tiene.
-
     - name: Install Python dependencies (specific to your app)
       run: |
+        pip install --upgrade pip
         # Kivy, Buildozer y python-for-android ya están en el contenedor.
         # Solo instalamos las dependencias específicas de tu proyecto si no están.
-        pip install --upgrade pip
         pip install pyjnius==1.4.2 firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0 pytz plyer
 
     - name: Clean .buildozer directory
@@ -36,11 +35,10 @@ jobs:
           echo "buildozer.spec eliminado para asegurar un inicio limpio."
         fi
 
-    - name: Initialize Buildozer # ¡CRUCIAL! Ejecutamos buildozer init primero
+    - name: Initialize Buildozer
       run: buildozer init
 
     # Pasos individuales para modificar el buildozer.spec
-    # Ahora que buildozer.spec existe, podemos modificarlo con sed
     - name: Modify buildozer.spec - Title
       run: |
         sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec
@@ -85,9 +83,7 @@ jobs:
       run: |
         sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec
 
-    # No necesitamos android.sdk_path ni android.ndk_path aquí, el contenedor y Buildozer lo gestionarán.
-
-    - name: Build Android APK # ¡Finalmente, el paso de compilación!
+    - name: Build Android APK
       run: |
         buildozer android debug
 
