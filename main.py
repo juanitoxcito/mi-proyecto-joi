@@ -1,9 +1,10 @@
+# main.py
 from kivy.app import App
 from kivy.uix.label import Label
 
 class JoiApp(App):
     def build(self):
-        return Label(text='Hola, Juan! Kivy App funcionando!')
+        return Label(text='¡Hola, Juan Eduardo! ¡Joi está compilando!')
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     JoiApp().run()
