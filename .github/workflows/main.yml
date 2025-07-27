@@ -1,92 +1,10 @@
-name: Build Kivy Android APK
+# main.py
+from kivy.app import App
+from kivy.uix.label import Label
 
-on:
-  push:
-    branches:
-      - main # Este flujo de trabajo se activará cada vez que haya un 'push' a la rama 'main'
+class JoiApp(App):
+    def build(self):
+        return Label(text='¡Hola, Juan Eduardo! ¡Joi está compilando!')
 
-jobs:
-  build:
-    runs-on: ubuntu-latest # Usamos un runner de Ubuntu
-    container: kivy/python-for-android # Usamos este contenedor (sin 'user: root')
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4 # Volvemos a usar actions/checkout
-      env: # ¡NUEVO Y CLAVE! Redirigimos HOME para evitar problemas de permisos
-        HOME: /tmp
-
-    - name: Install Python dependencies (specific to your app)
-      run: |
-        pip install --upgrade pip
-        pip install pyjnius==1.4.2 firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0 pytz plyer
-
-    - name: Clean .buildozer directory
-      run: |
-        rm -rf .buildozer
-        echo ".buildozer directory eliminado para asegurar un inicio limpio."
-
-    - name: Clean buildozer.spec if it exists
-      run: |
-        if [ -f buildozer.spec ]; then
-          rm buildozer.spec
-          echo "buildozer.spec eliminado para asegurar un inicio limpio."
-        fi
-
-    - name: Initialize Buildozer
-      run: buildozer init
-
-    # Pasos individuales para modificar el buildozer.spec
-    - name: Modify buildozer.spec - Title
-      run: |
-        sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec
-
-    - name: Modify buildozer.spec - Package Name
-      run: |
-        sed -i 's/^#*package.name = .*$/package.name = joi/' buildozer.spec
-
-    - name: Modify buildozer.spec - Package Domain
-      run: |
-        sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec
-
-    - name: Modify buildozer.spec - Android API
-      run: |
-        sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec
-
-    - name: Modify buildozer.spec - Android Min API
-      run: |
-        sed -i 's/^#*android.minapi = .*$/android.minapi = 24/' buildozer.spec
-
-    - name: Modify buildozer.spec - Requirements
-      run: |
-        sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,firebase-admin,google-generativeai,requests,pytz,plyer/' buildozer.spec
-
-    - name: Modify buildozer.spec - Android NDK
-      run: |
-        sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec
-    
-    - name: Modify buildozer.spec - Android Architectures
-      run: |
-        sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec
-
-    - name: Modify buildozer.spec - Log Level
-      run: |
-        sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
-
-    - name: Modify buildozer.spec - Accept SDK License
-      run: |
-        sed -i '/^#*android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec
-    
-    - name: Modify buildozer.spec - Android Build Tools Version
-      run: |
-        sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec
-
-    - name: Build Android APK
-      run: |
-        buildozer android debug
-
-    - name: Upload APK artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: joi-android-apk
-        path: bin/*.apk # Sube el archivo .apk generado por Buildozer
+if __name__ == '__main__':
+    JoiApp().run()
