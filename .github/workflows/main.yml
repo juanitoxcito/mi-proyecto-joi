@@ -36,7 +36,8 @@ jobs:
             echo 'Iniciando Buildozer y compilando Joi...' && \
             pip install --upgrade pip && \
             pip install buildozer && \
-            pip install pyjnius==1.4.2 firebase-admin google-generativeai requests pytz plyer proto-plus==1.26.0 httpcore==1.0.8 h11==0.14.0 && \
+            # ¡NUEVO Y CLAVE! Añadimos cython a la lista de instalaciones
+            pip install pyjnius==1.4.2 firebase-admin google-generativeai requests pytz plyer proto-plus==1.26.0 httpcore==1.0.8 h11==0.14.0 cython && \
             rm -rf .buildozer && \
             if [ -f buildozer.spec ]; then rm buildozer.spec; fi && \
             yes | buildozer init --ignore-root && \
