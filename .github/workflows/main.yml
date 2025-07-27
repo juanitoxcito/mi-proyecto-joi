@@ -7,22 +7,23 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest # Volvemos a un runner estándar de Ubuntu (sin contenedor a nivel de job)
+    runs-on: ubuntu-latest # Usamos un runner estándar de Ubuntu
+    container:
+      image: kivy/python-for-android # Usamos este contenedor
+      user: root # Mantenemos el usuario root para permisos completos
+
+    env: # Establecemos HOME para todo el trabajo para evitar problemas de permisos de checkout
+      HOME: /tmp
 
     steps:
-    - name: Checkout code # La acción de checkout ahora debería funcionar sin problemas de permisos
+    - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Install Python dependencies (on host runner, if needed for buildozer init)
       run: |
-        # Aunque Buildozer se ejecutará en Docker, algunas herramientas básicas de Python
-        # pueden ser útiles para la configuración inicial o si Buildozer tuviera dependencias
-        # que necesiten ser pre-instaladas en el host para el init.
-        # En este caso, no son estrictamente necesarias aquí porque Buildozer se ejecuta en el contenedor.
-        # Las dependencias de tu app se instalarán dentro del contenedor.
-        echo "No Python dependencies installed directly on host for this setup."
+        echo "No Python dependencies installed directly on host for this setup. All will be in Docker."
 
-    - name: Build Android APK using Docker Container # ¡NUEVO Y CLAVE! Todo en un solo comando docker run
+    - name: Build Android APK using Docker Container # Todo en un solo comando docker run
       run: |
         # Definimos el directorio de trabajo dentro del contenedor
         CONTAINER_WORKDIR="/app"
@@ -38,8 +39,11 @@ jobs:
           -e HOME=/tmp \
           kivy/python-for-android \
           bash -c " \
+            # ¡NUEVO Y CLAVE! Aseguramos que ~/.local/bin esté en el PATH
+            export PATH=\"\$HOME/.local/bin:\$PATH\" && \
             echo 'Iniciando Buildozer y compilando Joi...' && \
             pip install --upgrade pip && \
+            pip install buildozer && \ # ¡NUEVO Y CLAVE! Instalamos buildozer
             pip install pyjnius==1.4.2 firebase-admin google-generativeai httpx==0.28.1 idna==3.6 charset_normalizer==3.3.2 requests==2.31.0 pytz plyer && \
             rm -rf .buildozer && \
             if [ -f buildozer.spec ]; then rm buildozer.spec; fi && \
