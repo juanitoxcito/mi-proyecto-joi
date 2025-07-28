@@ -43,9 +43,7 @@ jobs:
             sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec && \
             sed -i 's/^#*package.name = .*$/package.name = joi/' buildozer.spec && \
             sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec && \
-            # ¡CORRECCION CLAVE! Cambiamos a API 33 para compatibilidad del manifiesto
             sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec && \
-            # ¡CORRECCION CLAVE! Cambiamos a MINAPI 23 para compatibilidad del manifiesto
             sed -i 's/^#*android.minapi = .*$/android.minapi = 23/' buildozer.spec && \
             sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,firebase-admin,google-generativeai,requests,pytz,plyer,cython/' buildozer.spec && \
             sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec && \
@@ -53,6 +51,9 @@ jobs:
             sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec && \
             sed -i '/^#*android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec && \
             sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec && \
+            # ¡NUEVO Y CLAVE! Añadimos el permiso de micrófono para reconocimiento de voz
+            sed -i '/^#*android.permissions =/c\android.permissions = VIBRATE,INTERNET,RECORD_AUDIO' buildozer.spec && \
+            python3 -m pip install cython==0.29.36 && \
             yes | buildozer android debug --ignore-root && \
             echo 'Compilación de Joi completada.' \
           "
