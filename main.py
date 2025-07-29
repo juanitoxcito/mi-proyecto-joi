@@ -6,8 +6,9 @@ from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.label import Label
 from kivy.clock import Clock # Para actualizar la UI desde otro hilo
-from plyer import stt # Speech-to-Text (Reconocimiento de Voz)
-from plyer import tts # Text-to-Speech (Sintesis de Voz)
+import speech_recognition as sr # ¡NUEVO! Librería para reconocimiento de voz
+# from plyer import stt # ¡ELIMINADO! Ya no usaremos plyer para STT
+# from plyer import tts # ¡ELIMINADO TEMPORALMENTE! Lo reincorporaremos después si es necesario
 import sys # Importamos sys para redirigir la salida de errores
 import io # Importamos io para capturar la salida de errores
 
@@ -72,7 +73,6 @@ class JoiApp(App):
             background_color=[0.2, 0.6, 0.8, 1], # Azul vibrante
             color=[1, 1, 1, 1], # Texto blanco
             bold=True,
-            border_radius=[10], # Bordes redondeados
             markup=True # Habilita el marcado para texto
         )
         # Asignamos la función on_listen_button_press al evento de presionar el botón
@@ -105,31 +105,38 @@ class JoiApp(App):
         threading.Thread(target=self._start_speech_recognition).start()
 
     def _start_speech_recognition(self):
-        try:
-            # Intentamos iniciar el reconocimiento de voz
-            results = stt.listen(language='es-ES', show_partial=False)
+        r = sr.Recognizer()
+        with sr.Microphone() as source:
+            try:
+                # Ajustamos el umbral de ruido para mejorar la precisión
+                r.adjust_for_ambient_noise(source, duration=1)
+                audio = r.listen(source)
 
-            if results and len(results) > 0:
-                recognized_text = results[0]
+                # Intentamos reconocer la voz usando la API de Google
+                recognized_text = r.recognize_google(audio, language='es-ES')
                 Clock.schedule_once(lambda dt: self._process_recognized_text(recognized_text), 0)
-            else:
-                Clock.schedule_once(lambda dt: self._update_chat_display("No se reconoció nada. Intenta de nuevo."), 0)
 
-        except Exception as e:
-            error_message = f"Error en el reconocimiento de voz: {e}"
-            Clock.schedule_once(lambda dt: self._update_chat_display(error_message), 0)
-        finally:
-            Clock.schedule_once(lambda dt: self._reset_listen_button(), 0)
+            except sr.UnknownValueError:
+                Clock.schedule_once(lambda dt: self._update_chat_display("No pude entender lo que dijiste. Intenta de nuevo."), 0)
+            except sr.RequestError as e:
+                error_message = f"Error al solicitar el servicio de reconocimiento de voz de Google; ¿Estás conectado a Internet? {e}"
+                Clock.schedule_once(lambda dt: self._update_chat_display(error_message), 0)
+            except Exception as e:
+                error_message = f"Error inesperado en el reconocimiento de voz: {e}"
+                Clock.schedule_once(lambda dt: self._update_chat_display(error_message), 0)
+            finally:
+                Clock.schedule_once(lambda dt: self._reset_listen_button(), 0)
 
     def _process_recognized_text(self, user_input):
         self.chat_display.text = f"Tú: {user_input}\nJoi: Pensando..."
         self.chat_display.cursor = (0, len(self.chat_display.text.splitlines()))
 
         # En esta versión simplificada, Joi solo responde con un mensaje de prueba
-        joi_response_to_user = f"Hola Juan Eduardo, me dijiste: '{user_input}'. ¡Estoy funcionando correctamente!"
+        joi_response_to_user = f"Hola Juan Eduardo, me dijiste: '{user_input}'. ¡Estoy funcionando correctamente con SpeechRecognition!"
         Clock.schedule_once(lambda dt: self._update_chat_display_with_joi_response(user_input, joi_response_to_user), 0)
 
     def _update_chat_display(self, text):
+        # Esta función actualiza el TextInput en el hilo principal
         self.chat_display.text = f"Tú: {text}\nJoi: (Respuesta de Joi aquí...)"
         self.chat_display.cursor = (0, len(self.chat_display.text.splitlines()))
 
@@ -139,6 +146,7 @@ class JoiApp(App):
         self.chat_display.cursor = (0, len(self.chat_display.text.splitlines()))
 
     def _reset_listen_button(self):
+        # Esta función re-habilita el botón en el hilo principal
         self.listen_button.disabled = False
         self.listen_button.text = 'Toca para Hablar'
 
@@ -153,4 +161,4 @@ if __name__ == '__main__':
         sys.stderr.write(traceback.format_exc())
     finally:
         # Asegurarse de restaurar stderr al final
-        sys.stderr = original_st
+        sys.stderr = original_stderr
