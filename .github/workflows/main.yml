@@ -27,7 +27,7 @@ jobs:
 
     - name: Build Android APK
       run: |
-        yes | buildozer init
+        if [ ! -f buildozer.spec ]; then yes | buildozer init; fi
         sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec
         sed -i 's/^#*package.name = .*$/package.name = joi/' buildozer.spec
         sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec
