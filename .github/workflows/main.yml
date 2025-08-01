@@ -44,8 +44,8 @@ jobs:
             echo 'Iniciando Buildozer y compilando Joi...' && \
             pip install --upgrade pip && \
             pip install buildozer && \
-            # ¡CLAVE! Eliminamos firebase-admin, google-generativeai y sus dependencias explícitas para solucionar el crash
-            pip install pyjnius==1.4.2 plyer cython==0.29.36 && \
+            # ¡CLAVE! Se añaden las nuevas dependencias de networkx, google-generativeai y firebase-admin
+            pip install pyjnius==1.4.2 plyer cython==0.29.36 networkx google-generativeai firebase-admin && \
             rm -rf .buildozer && \
             if [ -f buildozer.spec ]; then rm buildozer.spec; fi && \
             yes | buildozer init --ignore-root && \
@@ -54,8 +54,8 @@ jobs:
             sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec && \
             sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec && \
             sed -i 's/^#*android.minapi = .*$/android.minapi = 23/' buildozer.spec && \
-            # ¡CLAVE! Requisitos: Solo Kivy, KivyMD y Plyer (para voz). Eliminamos Firebase y Gemini por ahora.
-            sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,plyer,cython/' buildozer.spec && \
+            # ¡CLAVE! Se añaden los nuevos requisitos al archivo buildozer.spec
+            sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,plyer,cython,networkx,google-generativeai,firebase-admin/' buildozer.spec && \
             sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec && \
             sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec && \
             sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec && \
