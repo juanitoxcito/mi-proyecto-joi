@@ -37,7 +37,6 @@ jobs:
             echo 'Iniciando Buildozer y compilando Joi...' && \
             pip install --upgrade pip && \
             pip install buildozer && \
-            pip install pyjnius==1.4.2 plyer cython==0.29.36 networkx google-generativeai firebase-admin && \
             rm -rf .buildozer && \
             if [ -f buildozer.spec ]; then rm buildozer.spec; fi && \
             yes | buildozer init --ignore-root && \
@@ -46,7 +45,7 @@ jobs:
             sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec && \
             sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec && \
             sed -i 's/^#*android.minapi = .*$/android.minapi = 23/' buildozer.spec && \
-            sed -i 's/^#*requirements = .*$/requirements = python3,kivy,plyer,cython,networkx,google-generativeai,firebase-admin/' buildozer.spec && \
+            sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,plyer,cython,networkx,google-generativeai,firebase-admin/' buildozer.spec && \
             sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec && \
             sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec && \
             sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec && \
@@ -54,7 +53,7 @@ jobs:
             sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec && \
             sed -i '/^#*android.permissions =/c\android.permissions = VIBRATE,INTERNET,RECORD_AUDIO' buildozer.spec && \
             sed -i '/^#*p4a.python_version =/c\p4a.python_version = 3' buildozer.spec && \
-            python3 -m pip install cython==0.29.36 && \
+            python3 -m pip install cython==0.29.36 pyjnius==1.4.2 plyer networkx google-generativeai firebase-admin && \
             yes | buildozer android debug --ignore-root && \
             echo 'Compilación de Joi completada.' \
           "
