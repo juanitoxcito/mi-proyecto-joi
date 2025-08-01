@@ -22,6 +22,7 @@ jobs:
         password: ${{ secrets.DOCKER_TOKEN }}
 
     - name: Build Android APK using Docker Container
+      id: build_apk
       run: |
         CONTAINER_WORKDIR="/app"
         docker run --rm \
@@ -58,7 +59,7 @@ jobs:
             echo 'Compilación de Joi completada.' \
           "
 
-    - name: Upload APK artifact
+    - name: Find and Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
         name: joi-android-apk
