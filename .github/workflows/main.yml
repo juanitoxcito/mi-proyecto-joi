@@ -8,57 +8,41 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      HOME: /tmp
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_TOKEN }}
+        python-version: '3.10'
 
-    - name: Build Android APK using Docker Container
-      id: build_apk
+    - name: Install dependencies
       run: |
-        CONTAINER_WORKDIR="/app"
-        docker run --rm \
-          -v "$(pwd):${CONTAINER_WORKDIR}" \
-          -w "${CONTAINER_WORKDIR}" \
-          --user root \
-          -e HOME=/tmp \
-          kivy/python-for-android \
-          bash -c " \
-            export PATH=\"\$HOME/.local/bin:\$PATH\" && \
-            export BUILDOZER_ALLOW_ROOT=1 && \
-            echo 'Iniciando Buildozer y compilando Joi...' && \
-            pip install --upgrade pip && \
-            pip install buildozer && \
-            rm -rf .buildozer && \
-            if [ -f buildozer.spec ]; then rm buildozer.spec; fi && \
-            yes | buildozer init --ignore-root && \
-            sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec && \
-            sed -i 's/^#*package.name = .*$/package.name = joi/' buildozer.spec && \
-            sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec && \
-            sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec && \
-            sed -i 's/^#*android.minapi = .*$/android.minapi = 23/' buildozer.spec && \
-            sed -i 's/^#*requirements = .*$/requirements = python3,kivy,kivymd,plyer,cython,networkx,google-generativeai,firebase-admin/' buildozer.spec && \
-            sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec && \
-            sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec && \
-            sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec && \
-            sed -i '/^#*android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec && \
-            sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec && \
-            sed -i '/^#*android.permissions =/c\android.permissions = VIBRATE,INTERNET,RECORD_AUDIO' buildozer.spec && \
-            sed -i '/^#*p4a.python_version =/c\p4a.python_version = 3' buildozer.spec && \
-            python3 -m pip install cython==0.29.36 pyjnius==1.4.2 plyer networkx google-generativeai firebase-admin && \
-            yes | buildozer android debug --ignore-root && \
-            echo 'Compilación de Joi completada.' \
-          "
+        python -m pip install --upgrade pip
+        pip install buildozer
+        pip install "cython<3"
+        pip install pyjnius==1.4.2 plyer networkx google-generativeai firebase-admin
 
-    - name: Find and Upload APK artifact
+    - name: Build Android APK
+      run: |
+        yes | buildozer init
+        sed -i 's/^#*title = .*$/title = JoiApp/' buildozer.spec
+        sed -i 's/^#*package.name = .*$/package.name = joi/' buildozer.spec
+        sed -i 's/^#*package.domain = .*$/package.domain = org.joi/' buildozer.spec
+        sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec
+        sed -i 's/^#*android.minapi = .*$/android.minapi = 23/' buildozer.spec
+        sed -i 's/^#*requirements = .*$/requirements = python3,kivy,plyer,cython,networkx,google-generativeai,firebase-admin/' buildozer.spec
+        sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec
+        sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec
+        sed -i 's/^#*log_level = .*$/log_level = 2/' buildozer.spec
+        sed -i '/^#*android.accept_sdk_license =/c\android.accept_sdk_license = True' buildozer.spec
+        sed -i '/^#*android.build_tools =/c\android.build_tools = 33.0.0' buildozer.spec
+        sed -i '/^#*android.permissions =/c\android.permissions = VIBRATE,INTERNET,RECORD_AUDIO' buildozer.spec
+        yes | buildozer android debug
+
+    - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
         name: joi-android-apk
