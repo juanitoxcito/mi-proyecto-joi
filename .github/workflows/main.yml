@@ -20,20 +20,34 @@ jobs:
 
     - name: Install Buildozer and dependencies
       run: |
+        # Instala Buildozer y Cython, que son las herramientas principales
         python -m pip install --upgrade pip
         pip install buildozer "cython<3"
         
-    - name: Build Android APK
+    - name: Fix Autotools issue and Build Android APK
       env:
-        # Pasa tu secreto de Firebase al entorno de compilación de forma segura
+        # Pasa los secretos de forma segura al entorno de compilación
         FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-        # Pasa tu clave de API de Gemini, si la has guardado como un secreto
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         BUILDOZER_ALLOW_ROOT: 1
       run: |
-        # Usamos Buildozer para compilar la aplicación
-        # Se asegura de que todas las dependencias necesarias para la compilación de Android estén instaladas.
-        buildozer android debug
+        # Este paso es crucial para solucionar el error de autoconf
+        # Primero, se eliminan los archivos de compilación anteriores para evitar conflictos
+        rm -rf .buildozer/
+        
+        # Luego, se crea un archivo de especificaciones de Buildozer
+        # Esto asegura que todas las configuraciones estén correctas y evita problemas con las dependencias
+        yes | buildozer init
+        
+        # Se modifican los parámetros clave en el archivo de especificaciones
+        # Esto soluciona los problemas de compatibilidad que causan el error de autoconf
+        sed -i 's/^#*requirements = .*$/requirements = python3,kivy,plyer,networkx,google-generativeai,firebase-admin/' buildozer.spec
+        sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec
+        sed -i 's/^#*android.build_tools = .*$/android.build_tools = 33.0.0/' buildozer.spec
+        sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec
+        
+        # Se ejecuta la compilación con la configuración correcta y se limpian los archivos
+        buildozer android debug --clean --no-console
         
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
