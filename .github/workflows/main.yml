@@ -14,30 +14,34 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Build Android APK using Docker
+      # Usa la imagen de Docker para compilar la app
+      # Esto evita todos los errores de dependencias que tuvimos
+      uses: docker://kivy/python-for-android
+      with:
+        args: bash -c "
+          # Este script se ejecuta dentro del contenedor de Docker
+          
+          # Instala Buildozer y sus dependencias
+          pip install buildozer cython==0.29.36
+
+          # Revisa si buildozer.spec ya existe para evitar errores
+          if [ ! -f 'buildozer.spec' ]; then
+            yes | buildozer init --no-console
+          fi
+
+          # Configura los parámetros clave
+          sed -i 's/^#*requirements = .*$/requirements = python3,kivy,plyer,networkx,google-generativeai,firebase-admin/' buildozer.spec
+          sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec
+          sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec
+          
+          # Compila la aplicación para Android
+          buildozer android debug --clean
+          "
       env:
-        # Pasa tus secretos a Docker de forma segura
+        # Pasa los secretos de forma segura al contenedor de Docker
         FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      run: |
-        # Este comando inicia una máquina virtual Docker que ya tiene todas las herramientas de Kivy instaladas.
-        docker run --rm \
-          -v "$(pwd):/home/user/app" \
-          -w "/home/user/app" \
-          --env FIREBASE_SERVICE_ACCOUNT_JSON="${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}" \
-          --env GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
-          kivy/python-for-android \
-          bash -c " \
-            # Instala Buildozer y sus dependencias
-            pip install buildozer cython==0.29.36 && \
-            # Inicia buildozer con las configuraciones correctas
-            yes | buildozer init --ignore-root && \
-            sed -i 's/^#*requirements = .*$/requirements = python3,kivy,plyer,networkx,google-generativeai,firebase-admin/' buildozer.spec && \
-            sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec && \
-            sed -i 's/^#*android.build_tools = .*$/android.build_tools = 33.0.0/' buildozer.spec && \
-            sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec && \
-            # Compila la aplicación
-            buildozer android debug --clean \
-          "
+        BUILDOZER_ALLOW_ROOT: 1
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
