@@ -13,46 +13,31 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-
-    - name: Install Buildozer and dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install buildozer "cython<3"
-    
-    - name: Install build essentials
-      run: |
-        # Este paso asegura que las herramientas de compilación necesarias estén instaladas y actualizadas.
-        sudo apt-get update
-        sudo apt-get install -y autoconf automake libtool
-        
-    - name: Configure and Build Android APK
+    - name: Build Android APK using Docker
       env:
+        # Pasa tus secretos a Docker de forma segura
         FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        BUILDOZER_ALLOW_ROOT: 1
       run: |
-        # Este paso es la solución al error del archivo 'buildozer.spec'.
-        # Primero, se comprueba si el archivo ya existe.
-        if [ ! -f "buildozer.spec" ]; then
-          # Si no existe, se crea el archivo de forma segura.
-          buildozer init --no-console
-        fi
-        
-        # A continuación, se modifican los parámetros clave en el archivo de especificaciones.
-        # Estas líneas son las mismas que antes y aseguran que Joi tenga la configuración correcta.
-        sed -i 's/^#*requirements = .*$/requirements = python3,kivy,plyer,networkx,google-generativeai,firebase-admin/' buildozer.spec
-        sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec
-        sed -i 's/^#*android.build_tools = .*$/android.build_tools = 33.0.0/' buildozer.spec
-        sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec
-        sed -i 's/^#*android.archs = .*$/android.archs = arm64-v8a,armeabi-v7a/' buildozer.spec
-        
-        # Finalmente, se ejecuta la compilación con la configuración corregida.
-        buildozer android debug --clean
-        
+        # Este comando inicia una máquina virtual Docker que ya tiene todas las herramientas de Kivy instaladas.
+        docker run --rm \
+          -v "$(pwd):/home/user/app" \
+          -w "/home/user/app" \
+          --env-file <(env | grep -E '^(FIREBASE_SERVICE_ACCOUNT_JSON|GEMINI_API_KEY)') \
+          kivy/python-for-android \
+          bash -c " \
+            # Instala Buildozer y sus dependencias
+            pip install buildozer cython==0.29.36 && \
+            # Inicia buildozer con las configuraciones correctas
+            yes | buildozer init --ignore-root && \
+            sed -i 's/^#*requirements = .*$/requirements = python3,kivy,plyer,networkx,google-generativeai,firebase-admin/' buildozer.spec && \
+            sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec && \
+            sed -i 's/^#*android.build_tools = .*$/android.build_tools = 33.0.0/' buildozer.spec && \
+            sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec && \
+            # Compila la aplicación
+            buildozer android debug --clean \
+          "
+
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
