@@ -23,7 +23,8 @@ jobs:
         docker run --rm \
           -v "$(pwd):/home/user/app" \
           -w "/home/user/app" \
-          --env-file <(env | grep -E '^(FIREBASE_SERVICE_ACCOUNT_JSON|GEMINI_API_KEY)') \
+          --env FIREBASE_SERVICE_ACCOUNT_JSON="${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}" \
+          --env GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
           kivy/python-for-android \
           bash -c " \
             # Instala Buildozer y sus dependencias
