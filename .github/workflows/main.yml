@@ -23,9 +23,10 @@ jobs:
           kivy/python-for-android \
           bash -c "
             # Exporta todas las variables de entorno necesarias para que sean leídas por los comandos.
+            # Se usan comillas dobles para que el script funcione incluso si los secretos están vacíos.
             export BUILDOZER_ALLOW_ROOT=1
-            export FIREBASE_SERVICE_ACCOUNT_JSON='${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}'
-            export GEMINI_API_KEY='${{ secrets.GEMINI_API_KEY }}'
+            export FIREBASE_SERVICE_ACCOUNT_JSON=\"${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}\"
+            export GEMINI_API_KEY=\"${{ secrets.GEMINI_API_KEY }}\"
 
             # Instala Buildozer y sus dependencias de forma global con permisos de root.
             pip install buildozer cython==0.29.36 networkx google-generativeai firebase-admin || { echo 'Error al instalar paquetes'; exit 1; }
