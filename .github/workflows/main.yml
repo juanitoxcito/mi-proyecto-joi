@@ -24,27 +24,23 @@ jobs:
         FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
-        # Usamos '--user root' para garantizar permisos de instalación
         docker exec --user root ${{ steps.docker_container.outputs.container_id }} bash -c "
           export HOME=/home/user
+          
           # Instala Buildozer y sus dependencias de forma global
           pip install buildozer cython==0.29.36 networkx google-generativeai firebase-admin &&
           
-          # Añade la ruta de instalación de pip a la variable PATH para el usuario 'user'
-          # Esto es necesario si pip aún lo instala en la carpeta local, como a veces sucede
+          # Exporta las variables de entorno necesarias para que Buildozer funcione correctamente
+          export BUILDOZER_ALLOW_ROOT=1 &&
           export PATH=\$PATH:\$HOME/.local/bin &&
 
-          # Se añade también la variable de entorno BUILDOZER_ALLOW_ROOT=1
-          # para que Buildozer funcione correctamente
-          export BUILDOZER_ALLOW_ROOT=1 &&
-
-          # Elimina el archivo buildozer.spec anterior y crea uno nuevo.
-          if [ -f 'buildozer.spec' ]; then
-            rm buildozer.spec
+          # Crea el archivo buildozer.spec si no existe. La opción --no-console es clave
+          # para entornos no interactivos.
+          if [ ! -f 'buildozer.spec' ]; then
+            buildozer init --no-console
           fi
-          buildozer init --no-console
           
-          # Configura los parámetros clave en el archivo buildozer.spec
+          # Modifica los parámetros clave en el archivo buildozer.spec
           sed -i 's/^#*requirements = .*$/requirements = python3,kivy,plyer,networkx,google-generativeai,firebase-admin/' buildozer.spec &&
           sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec &&
           sed -i 's/^#*android.build_tools = .*$/android.build_tools = 33.0.0/' buildozer.spec &&
