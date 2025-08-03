@@ -24,7 +24,7 @@ jobs:
         FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
-        docker exec --user $(id -u):$(id -g) ${{ steps.docker_container.outputs.container_id }} bash -c "
+        docker exec ${{ steps.docker_container.outputs.container_id }} bash -c "
           export HOME=/home/user
           # Instala Buildozer y sus dependencias sin el flag --user
           pip install buildozer cython==0.29.36 &&
