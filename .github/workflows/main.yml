@@ -14,25 +14,27 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Build Android APK
+      env:
+        FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
+        # Este script de shell se ejecuta de forma directa y segura en GitHub Actions.
+        # Las variables de entorno ya están disponibles gracias al bloque 'env:'.
+        
         # Ejecuta todo el proceso de compilación dentro de un único contenedor Docker.
-        # Esto evita problemas de permisos, rutas y dependencias que hemos enfrentado.
+        # Usa 'kivy/python-for-android'
         docker run --rm \
           -v "$(pwd):/home/user/app" \
           -w "/home/user/app" \
+          -e BUILDOZER_ALLOW_ROOT=1 \
+          -e FIREBASE_SERVICE_ACCOUNT_JSON="${FIREBASE_SERVICE_ACCOUNT_JSON}" \
+          -e GEMINI_API_KEY="${GEMINI_API_KEY}" \
           kivy/python-for-android \
           bash -c "
-            # Exporta todas las variables de entorno necesarias para que sean leídas por los comandos.
-            # Se usan comillas dobles para que el script funcione incluso si los secretos están vacíos.
-            export BUILDOZER_ALLOW_ROOT=1
-            export FIREBASE_SERVICE_ACCOUNT_JSON=\"${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}\"
-            export GEMINI_API_KEY=\"${{ secrets.GEMINI_API_KEY }}\"
-
             # Instala Buildozer y sus dependencias de forma global con permisos de root.
             pip install buildozer cython==0.29.36 networkx google-generativeai firebase-admin || { echo 'Error al instalar paquetes'; exit 1; }
             
             # Crea un nuevo buildozer.spec si no existe.
-            # Se usa 'yes' para responder automáticamente a cualquier pregunta de 'buildozer init'.
             if [ ! -f 'buildozer.spec' ]; then
               yes | buildozer init
             fi
