@@ -13,50 +13,42 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Docker container
-      id: docker_container
+    - name: Build Android APK
       run: |
-        docker run -d --name p4a_builder -v "$(pwd):/home/user/app" -w "/home/user/app" kivy/python-for-android sleep infinity
-        echo "container_id=$(docker ps -aqf "name=p4a_builder")" >> $GITHUB_OUTPUT
+        # Ejecuta todo el proceso de compilación dentro de un único contenedor Docker.
+        # Esto evita problemas de permisos, rutas y dependencias que hemos enfrentado.
+        docker run --rm \
+          -v "$(pwd):/home/user/app" \
+          -w "/home/user/app" \
+          kivy/python-for-android \
+          bash -c "
+            # Exporta todas las variables de entorno necesarias para que sean leídas por los comandos.
+            export BUILDOZER_ALLOW_ROOT=1
+            export FIREBASE_SERVICE_ACCOUNT_JSON='${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}'
+            export GEMINI_API_KEY='${{ secrets.GEMINI_API_KEY }}'
 
-    - name: Configure and build APK
-      env:
-        FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      run: |
-        docker exec --user root ${{ steps.docker_container.outputs.container_id }} bash -c "
-          export HOME=/home/user
-          
-          # Instala Buildozer y sus dependencias de forma global
-          pip install buildozer cython==0.29.36 networkx google-generativeai firebase-admin &&
-          
-          # Exporta las variables de entorno necesarias para que Buildozer funcione correctamente
-          export BUILDOZER_ALLOW_ROOT=1 &&
-          export PATH=\$PATH:\$HOME/.local/bin &&
+            # Instala Buildozer y sus dependencias de forma global con permisos de root.
+            pip install buildozer cython==0.29.36 networkx google-generativeai firebase-admin || { echo 'Error al instalar paquetes'; exit 1; }
+            
+            # Crea un nuevo buildozer.spec si no existe.
+            # Se usa 'yes' para responder automáticamente a cualquier pregunta de 'buildozer init'.
+            if [ ! -f 'buildozer.spec' ]; then
+              yes | buildozer init
+            fi
 
-          # Crea el archivo buildozer.spec si no existe. La opción --no-console es clave
-          # para entornos no interactivos.
-          if [ ! -f 'buildozer.spec' ]; then
-            buildozer init --no-console
-          fi
-          
-          # Modifica los parámetros clave en el archivo buildozer.spec
-          sed -i 's/^#*requirements = .*$/requirements = python3,kivy,plyer,networkx,google-generativeai,firebase-admin/' buildozer.spec &&
-          sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec &&
-          sed -i 's/^#*android.build_tools = .*$/android.build_tools = 33.0.0/' buildozer.spec &&
-          sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec &&
-          sed -i 's/^#*p4a.python_version = .*$/p4a.python_version = 3/' buildozer.spec &&
+            # Modifica los parámetros clave en el archivo buildozer.spec con comandos sed robustos.
+            sed -i 's|^#*requirements = .*$|requirements = python3,kivy,plyer,networkx,google-generativeai,firebase-admin|g' buildozer.spec || { echo 'Error al configurar requirements'; exit 1; }
+            sed -i 's|^#*android.api = .*$|android.api = 33|g' buildozer.spec || { echo 'Error al configurar android.api'; exit 1; }
+            sed -i 's|^#*android.build_tools = .*$|android.build_tools = 33.0.0|g' buildozer.spec || { echo 'Error al configurar android.build_tools'; exit 1; }
+            sed -i 's|^#*android.ndk = .*$|android.ndk = 25b|g' buildozer.spec || { echo 'Error al configurar android.ndk'; exit 1; }
+            sed -i 's|^#*p4a.python_version = .*$|p4a.python_version = 3|g' buildozer.spec || { echo 'Error al configurar p4a.python_version'; exit 1; }
 
-          # Compila la aplicación para Android
-          buildozer android debug --clean
-        "
-        
+            # Compila la aplicación para Android
+            buildozer android debug --clean || { echo 'Error durante la compilación de Buildozer'; exit 1; }
+          "
+
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
         name: joi-android-apk
         path: bin/*.apk
-
-    - name: Clean up Docker container
-      if: always()
-      run: docker stop ${{ steps.docker_container.outputs.container_id }}
