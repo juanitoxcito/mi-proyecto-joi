@@ -45,7 +45,7 @@ jobs:
           sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec &&
           sed -i 's/^#*android.build_tools = .*$/android.build_tools = 33.0.0/' buildozer.spec &&
           sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec &&
-          sed -i 's/^#*p4a.python_version =/c\p4a.python_version = 3' buildozer.spec &&
+          sed -i 's/^#*p4a.python_version = .*$/p4a.python_version = 3/' buildozer.spec &&
 
           # Compila la aplicación para Android
           buildozer android debug --clean
