@@ -26,15 +26,12 @@ jobs:
       run: |
         docker exec --user $(id -u):$(id -g) ${{ steps.docker_container.outputs.container_id }} bash -c "
           export HOME=/home/user
-          # Instala Buildozer y sus dependencias dentro del contenedor
-          pip install --user buildozer cython==0.29.36 &&
+          # Instala Buildozer y sus dependencias sin el flag --user
+          pip install buildozer cython==0.29.36 &&
           
-          # Añade la ruta de instalación de pip a la variable PATH
-          export PATH=\$PATH:\$HOME/.local/bin &&
-
           # Revisa si buildozer.spec ya existe para evitar errores
           if [ ! -f 'buildozer.spec' ]; then
-            ~/.local/bin/buildozer init --no-console
+            buildozer init --no-console
           fi
           
           # Configura los parámetros clave
@@ -44,7 +41,7 @@ jobs:
           sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec &&
           
           # Compila la aplicación para Android
-          ~/.local/bin/buildozer android debug --clean
+          buildozer android debug --clean
         "
         
     - name: Upload APK artifact
