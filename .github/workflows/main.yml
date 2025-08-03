@@ -13,31 +13,41 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Build Android APK using Docker
+    - name: Set up Docker container
+      id: docker_container
       run: |
-        docker run --rm \
-          -v "$(pwd):/home/user/app" \
-          -w "/home/user/app" \
-          -e FIREBASE_SERVICE_ACCOUNT_JSON="${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}" \
-          -e GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
-          kivy/python-for-android \
-          bash -c " \
-            # Instala Buildozer y sus dependencias
-            pip install buildozer cython==0.29.36 && \
-            # Revisa si buildozer.spec ya existe para evitar errores
-            if [ ! -f 'buildozer.spec' ]; then \
-              yes | buildozer init --no-console; \
-            fi; \
-            # Configura los parámetros clave
-            sed -i 's/^#*requirements = .*$/requirements = python3,kivy,plyer,networkx,google-generativeai,firebase-admin/' buildozer.spec; \
-            sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec; \
-            sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec; \
-            # Compila la aplicación para Android
-            buildozer android debug --clean; \
-          "
-    
+        docker run -d --name p4a_builder -v "$(pwd):/home/user/app" -w "/home/user/app" kivy/python-for-android sleep infinity
+        echo "container_id=$(docker ps -aqf "name=p4a_builder")" >> $GITHUB_OUTPUT
+
+    - name: Configure and build APK
+      env:
+        FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: |
+        docker exec ${{ steps.docker_container.outputs.container_id }} bash -c "
+          # Instala Buildozer y sus dependencias dentro del contenedor
+          pip install buildozer cython==0.29.36 &&
+          
+          # Revisa si buildozer.spec ya existe para evitar errores
+          if [ ! -f 'buildozer.spec' ]; then
+            yes | buildozer init --no-console
+          fi
+          
+          # Configura los parámetros clave
+          sed -i 's/^#*requirements = .*$/requirements = python3,kivy,plyer,networkx,google-generativeai,firebase-admin/' buildozer.spec &&
+          sed -i 's/^#*android.api = .*$/android.api = 33/' buildozer.spec &&
+          sed -i 's/^#*android.ndk = .*$/android.ndk = 25b/' buildozer.spec &&
+          
+          # Compila la aplicación para Android
+          buildozer android debug --clean
+        "
+        
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
         name: joi-android-apk
         path: bin/*.apk
+
+    - name: Clean up Docker container
+      if: always()
+      run: docker stop ${{ steps.docker_container.outputs.container_id }}
